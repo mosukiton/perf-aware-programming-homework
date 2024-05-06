@@ -3,7 +3,7 @@
 ## homework001
 - register/memory to/from register
 
-## now supporting homework002
+## homework002
 - immediate to register/memory
 - immediate to register
 - memory to accumulator
