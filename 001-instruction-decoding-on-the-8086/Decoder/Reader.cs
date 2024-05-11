@@ -58,13 +58,11 @@ public class Reader
         byte reg = (byte)((_buffer[0] >> 3) & 0b_0000_0111);
         byte r_m = (byte)(_buffer[0] & 0b_0000_0111);
         string regDecoded = ByteParser.DecodeRegister(reg, w);
-        string r_mDecoded = mod switch {
-            0b00 => ByteParser.MostlyNoDisplacementMemoryMode(r_m, fileStream),
-            0b01 => ByteParser.ByteDisplacementMemoryMode(r_m, fileStream),
-            0b10 => ByteParser.UshortDisplacementMemoryMode(r_m, fileStream),
-            0b11 => ByteParser.DecodeRegister(r_m, w),
-            _ => throw new InvalidOperationException("unexepected w value")
-        };
+        string r_mDecoded = ByteParser.DecodeR_M(
+            mod: mod,
+            r_m: r_m,
+            w: w,
+            fileStream: fileStream);
 
         if (d == 1)
         {

@@ -66,11 +66,11 @@ public static class ByteParser
         return value.ToString();
     }
 
-    public static string DecodeRegister(byte code, byte w)
+    public static string DecodeRegister(byte reg, byte w)
     {
         if (w == 0)
         {
-            return code switch
+            return reg switch
             {
                 0b000 => "al",
                 0b001 => "cl",
@@ -85,7 +85,7 @@ public static class ByteParser
         }
         else if (w == 1)
         {
-            return code switch
+            return reg switch
             {
                 0b000 => "ax",
                 0b001 => "cx",
@@ -99,5 +99,16 @@ public static class ByteParser
             };
         }
         throw new InvalidOperationException("invalid W value.");
+    }
+
+    public static string DecodeR_M(byte mod, byte r_m, byte w, FileStream fileStream)
+    {
+        return mod switch {
+            0b00 => MostlyNoDisplacementMemoryMode(r_m, fileStream),
+            0b01 => ByteDisplacementMemoryMode(r_m, fileStream),
+            0b10 => UshortDisplacementMemoryMode(r_m, fileStream),
+            0b11 => DecodeRegister(r_m, w),
+            _ => throw new InvalidOperationException("unexepected w value")
+        };
     }
 }
