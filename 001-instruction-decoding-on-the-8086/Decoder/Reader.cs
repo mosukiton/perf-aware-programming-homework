@@ -1,141 +1,210 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using Homework001.Instructions;
 
 namespace Homework001;
 
 public class Reader 
 {
-    private readonly string inputFilePath;
-    private readonly byte[] buffer;
+    private readonly string _inputFilePath;
+    private readonly byte[] _buffer;
 
     public Reader(string inputFilePath)
     {
-        this.inputFilePath = inputFilePath;
-        this.buffer = new byte[2];
+        _inputFilePath = inputFilePath;
+        _buffer = new byte[1];
     }
 
     public List<string> ReadFile()
     {
         List<string> instructions = new();
         instructions.Add("bits 16");
-        Span<byte> bufferAsSpan = buffer;
-        using (FileStream fileStream = File.Open(inputFilePath, FileMode.Open))
+        Span<byte> bufferAsSpan = _buffer;
+        using (FileStream fileStream = File.Open(_inputFilePath, FileMode.Open))
         {
             while (fileStream.Read(bufferAsSpan) != 0)
             {
-                string instruction = ReadInstruction(bufferAsSpan);
-                instructions.Add(instruction);
+                byte firstByte = bufferAsSpan[0];
+                MovOpcode opcode = GetOpcode(firstByte);
+                string output = "";
+
+                switch (opcode)
+                {
+                    case MovOpcode.RegisterOrMemoryTo_FromRegister:
+                        output = ParseRegisterOrMemoryTo_FromRegister(firstByte, fileStream);
+                        instructions.Add(output);
+                        break;
+                    case MovOpcode.ImmediateToRegisterOrMemory:
+                        output = ParseImmediateToRegisterOrMemory(firstByte, fileStream);
+                        instructions.Add(output);
+                        break;
+                    case MovOpcode.ImmediateToRegister:
+                        output = ParseImmediateToRegister(firstByte, fileStream);
+                        instructions.Add(output);
+                        break;
+                    case MovOpcode.MemoryToAccumulator:
+                        output = ParseMemoryToAccumulator(firstByte, fileStream);
+                        instructions.Add(output);
+                        break;
+                    case MovOpcode.AccumulatorToMemory:
+                        output = ParseAccumulatorToMemory(firstByte, fileStream);
+                        instructions.Add(output);
+                        break;
+                    case MovOpcode.RegisterOrMemoryToSegmentRegister:
+                        break;
+                    case MovOpcode.SegmentRegisterToRegisterOrMemory:
+                        break;
+                    default:
+                        throw new InvalidOperationException("invalid opcode.");
+                }
             }
         }
 
         return instructions;
     }
 
-    private string ReadInstruction(ReadOnlySpan<byte> instructionAsBytes)
+    private string ParseAccumulatorToMemory(byte firstByte, FileStream fileStream)
     {
-        (byte opcode, byte d, byte w) = ReadFirstByte(instructionAsBytes[..1]);
-        Debug.Assert(d < 2, $"D equals {Convert.ToString(d, 2)}. D can only be 1 bit.");
-        Debug.Assert(w < 2, $"W equals {Convert.ToString(w, 2)}. W can only be 1 bit.");
+        byte w = (byte)(firstByte & 0b_0000_0001);
+        if (w == 1)
+        {
+            short memoryAddress = ByteParser.GetShortAsString(fileStream);
+            return $"mov [{memoryAddress}], ax";
+        }
+        else if (w == 0)
+        {
+            sbyte memoryAddress = ByteParser.GetSbyteAsString(fileStream);
+            return $"mov [{memoryAddress}], ax";
+        }
+        throw new Exception("should not throw here.");
+    }
 
-        (byte mod, byte reg, byte r_m) = ReadSecondByte(instructionAsBytes[1..]);
-        Debug.Assert(mod < 4, $"MOD equals {Convert.ToString(mod, 2)}. MOD can only be 2 bits.");
-        Debug.Assert(reg < 8, $"REG equals {Convert.ToString(reg, 2)}. REG can only be 3 bits.");
-        Debug.Assert(r_m < 8, $"R/M equals {Convert.ToString(r_m, 2)}. R/M can only be 3 bits.");
+    private string ParseMemoryToAccumulator(byte firstByte, FileStream fileStream)
+    {
+        byte w = (byte)(firstByte & 0b_0000_0001);
+        if (w == 1)
+        {
+            short memoryAddress = ByteParser.GetShortAsString(fileStream);
+            return $"mov ax, [{memoryAddress}]";
+        }
+        else if (w == 0)
+        {
+            sbyte memoryAddress = ByteParser.GetSbyteAsString(fileStream);
+            return $"mov ax, [{memoryAddress}]";
+        }
+        throw new Exception("should not throw here.");
+    }
 
-        Debug.Assert(opcode == 0b_0010_0010, "opcode is not a 'MOV' register/memory to/from register instruction.");
-        Debug.Assert(mod == 0b11, "MOD is not in register mode");
+    private string ParseImmediateToRegister(byte firstByte, FileStream fileStream)
+    {
+        byte reg = (byte)(firstByte & 0b_0000_0111);
+        byte w = (byte)((firstByte >> 3) & 0b_0000_0001);
+        string regDecoded = ByteParser.DecodeRegister(reg, w);
+        short immediate = 0;
+        if (w == 1)
+        {
+            immediate = ByteParser.GetShortAsString(fileStream);
+        }
+        else if (w == 0)
+        {
+            immediate = ByteParser.GetSbyteAsString(fileStream);
+        }
 
-        string regRegister = DecodeRegister(reg, w);
-        string r_mRegister = DecodeRegister(r_m, w);
+        return $"mov {regDecoded}, {immediate}";
+    }
+
+    private string ParseImmediateToRegisterOrMemory(byte firstByte, FileStream fileStream)
+    {
+        byte w = (byte)(firstByte & 0b_0000_0001);
+        fileStream.Read(_buffer.AsSpan<byte>());
+        byte mod = (byte)((_buffer[0] >> 6) & 0b_0000_0011);
+        byte r_m = (byte)(_buffer[0] & 0b_0000_0111);
+
+        string r_mDecoded = ByteParser.DecodeR_M(
+            mod: mod,
+            r_m: r_m,
+            w: w,
+            fileStream: fileStream);
+        string immediate = "";
+        if (w == 1)
+        {
+            immediate = $"word {ByteParser.GetShortAsString(fileStream)}";
+        }
+        else if (w == 0)
+        {
+            immediate = $"byte {ByteParser.GetSbyteAsString(fileStream)}";
+        }
+        return $"mov {r_mDecoded}, {immediate}";
+    }
+
+    private string ParseRegisterOrMemoryTo_FromRegister(byte firstByte, FileStream fileStream)
+    {
+        byte d = (byte)((firstByte >> 1) & 0b_0000_0001);
+        byte w = (byte)(firstByte & 0b_0000_0001);
+        fileStream.Read(_buffer.AsSpan<byte>());
+
+        byte mod = (byte)((_buffer[0] >> 6) & 0b_0000_0011);
+        byte reg = (byte)((_buffer[0] >> 3) & 0b_0000_0111);
+        byte r_m = (byte)(_buffer[0] & 0b_0000_0111);
+        string regDecoded = ByteParser.DecodeRegister(reg, w);
+        string r_mDecoded = ByteParser.DecodeR_M(
+            mod: mod,
+            r_m: r_m,
+            w: w,
+            fileStream: fileStream);
 
         if (d == 1)
         {
             // reg is source field
-            return $"mov {regRegister}, {r_mRegister}";
+            return $"mov {regDecoded}, {r_mDecoded}";
         }
         else if (d == 0)
         {
             // reg is destination field
-            return $"mov {r_mRegister}, {regRegister}";
+            return $"mov {r_mDecoded}, {regDecoded}";
         }
 
         throw new Exception("should not throw here.");
     }
 
-    private string DecodeRegister(byte code, byte w)
+    private MovOpcode GetOpcode(byte first)
     {
-        if (w == 0)
+        if (first >> 2 == 0b_0010_0010)
         {
-            return code switch
-            {
-                0b000 => "al",
-                0b001 => "cl",
-                0b010 => "dl",
-                0b011 => "bl",
-                0b100 => "ah",
-                0b101 => "ch",
-                0b110 => "dh",
-                0b111 => "bh",
-                _ => throw new Exception("invalid reg value")
-            };
+            return MovOpcode.RegisterOrMemoryTo_FromRegister;
         }
-        else if (w == 1)
+
+        if (first >> 1 == 0b_0110_0011)
         {
-            return code switch
-            {
-                0b000 => "ax",
-                0b001 => "cx",
-                0b010 => "dx",
-                0b011 => "bx",
-                0b100 => "sp",
-                0b101 => "bp",
-                0b110 => "si",
-                0b111 => "di",
-                _ => throw new Exception("invalid reg value")
-            };
+            return MovOpcode.ImmediateToRegisterOrMemory;
         }
-        throw new Exception("invalid W value.");
-    }
 
-    /// <summary>
-    /// Reads the first byte of the instruction.
-    /// </summary>
-    /// <param name="firstByte">The first byte</param>
-    /// <returns>The opcode, the dValue, the wValue</returns>
-    private (byte, byte, byte) ReadFirstByte(ReadOnlySpan<byte> firstByte)
-    {
-        byte opcode = (byte)(firstByte[0] >> 2);
-        byte dValue = (byte)(firstByte[0] & 0b_0000_0010);
-        byte wValue = (byte)(firstByte[0] & 0b_0000_0001);
-        Console.WriteLine(
-            $"""
-            opcode: {Convert.ToString(opcode, 2)},
-            dValue:{Convert.ToString(dValue, 2)},
-            wValue:{Convert.ToString(wValue, 2)}
-            """);
+        if (first >> 4 == 0b_0000_1011)
+        {
+            return MovOpcode.ImmediateToRegister;
+        }
 
-        return (opcode, dValue, wValue);
-    }
+        if (first >> 1 == 0b_0101_0000)
+        {
+            return MovOpcode.MemoryToAccumulator;
+        }
 
-    /// <summary>
-    /// Reads the second byte of the instruction.
-    /// </summary>
-    /// <param name="secondByte">The second byte</param>
-    /// <returns>The mod, the reg, the r/m value.</returns>
-    private (byte, byte, byte) ReadSecondByte(ReadOnlySpan<byte> secondByte)
-    {
-        byte mod = (byte)((secondByte[0] >> 6) & 0b_0000_0011);
-        byte reg = (byte)((secondByte[0] >> 3) & 0b_0000_0111);
-        byte r_m = (byte)(secondByte[0] & 0b_0000_0111);
-        Console.WriteLine(
-            $"""
-            mod: {Convert.ToString(mod, 2)},
-            reg:{Convert.ToString(reg, 2)}
-            r_m:{Convert.ToString(r_m, 2)}
-            """);
+        if (first >> 1 == 0b_0101_0001)
+        {
+            return MovOpcode.AccumulatorToMemory;
+        }
 
-        return (mod, reg, r_m);
+        if (first == 0b_1000_1110)
+        {
+            return MovOpcode.RegisterOrMemoryToSegmentRegister;
+        }
+
+        if (first >> 1 == 0b_1000_1100)
+        {
+            return MovOpcode.SegmentRegisterToRegisterOrMemory;
+        }
+
+        throw new InvalidOperationException($"unrecognisable opcode: {Convert.ToString(first, 2)}");
     }
 }
