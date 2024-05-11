@@ -17,16 +17,17 @@ public static class ByteParser
 
     public static string DisplacementMemoryModeImplementation(byte r_m, short displacementValue)
     {
+        string sign = displacementValue < 0 ? "-" : "+";
         return r_m switch
         {
-            0b000 => displacementValue == 0 ? $"[bx + si]" : $"[bx + si + {displacementValue}]",
-            0b001 => displacementValue == 0 ? $"[bx + di]" : $"[bx + di + {displacementValue}]",
-            0b010 => displacementValue == 0 ? $"[bp + si]" : $"[bp + si + {displacementValue}]",
-            0b011 => displacementValue == 0 ? $"[bp + di]" : $"[bp + di + {displacementValue}]",
-            0b100 => displacementValue == 0 ? $"[si]" : $"[si + {displacementValue}]",
-            0b101 => displacementValue == 0 ? $"[di]" : $"[di + {displacementValue}]",
-            0b110 => displacementValue == 0 ? $"[bp]" : $"[bp + {displacementValue}]",
-            0b111 => displacementValue == 0 ? $"[bx]" : $"[bx + {displacementValue}]",
+            0b000 => displacementValue == 0 ? $"[bx + si]" : $"[bx + si {sign} {Math.Abs(displacementValue)}]",
+            0b001 => displacementValue == 0 ? $"[bx + di]" : $"[bx + di {sign} {Math.Abs(displacementValue)}]",
+            0b010 => displacementValue == 0 ? $"[bp + si]" : $"[bp + si {sign} {Math.Abs(displacementValue)}]",
+            0b011 => displacementValue == 0 ? $"[bp + di]" : $"[bp + di {sign} {Math.Abs(displacementValue)}]",
+            0b100 => displacementValue == 0 ? $"[si]" : $"[si {sign} {Math.Abs(displacementValue)}]",
+            0b101 => displacementValue == 0 ? $"[di]" : $"[di {sign} {Math.Abs(displacementValue)}]",
+            0b110 => displacementValue == 0 ? $"[bp]" : $"[bp {sign} {Math.Abs(displacementValue)}]",
+            0b111 => displacementValue == 0 ? $"[bx]" : $"[bx {sign} {Math.Abs(displacementValue)}]",
             _ => throw new InvalidOperationException("invalid reg value")
         };
     }
