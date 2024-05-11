@@ -42,7 +42,7 @@ public static class ByteParser
             0b011 => "[bp + di]",
             0b100 => "si",
             0b101 => "di",
-            0b110 => $"{GetUshortIntegerAsString(fileStream)}",
+            0b110 => $"[{GetUshortIntegerAsString(fileStream)}]",
             0b111 => "bx",
             _ => throw new Exception("invalid reg value")
         };
