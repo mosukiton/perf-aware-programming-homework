@@ -33,7 +33,6 @@ public class Reader
                 {
                     case MovOpcode.RegisterOrMemoryTo_FromRegister:
                         output = ParseRegisterOrMemoryTo_FromRegister(firstByte, fileStream);
-                        Console.WriteLine(output);
                         instructions.Add(output);
                         break;
                     case MovOpcode.ImmediateToRegisterOrMemory:
@@ -42,7 +41,6 @@ public class Reader
                         break;
                     case MovOpcode.ImmediateToRegister:
                         output = ParseImmediateToRegister(firstByte, fileStream);
-                        Console.WriteLine(output);
                         instructions.Add(output);
                         break;
                     case MovOpcode.MemoryToAccumulator:
