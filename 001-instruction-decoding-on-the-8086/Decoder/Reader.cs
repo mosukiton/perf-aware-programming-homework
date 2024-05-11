@@ -44,8 +44,12 @@ public class Reader
                         instructions.Add(output);
                         break;
                     case MovOpcode.MemoryToAccumulator:
+                        output = ParseMemoryToAccumulator(firstByte, fileStream);
+                        instructions.Add(output);
                         break;
                     case MovOpcode.AccumulatorToMemory:
+                        output = ParseAccumulatorToMemory(firstByte, fileStream);
+                        instructions.Add(output);
                         break;
                     case MovOpcode.RegisterOrMemoryToSegmentRegister:
                         break;
@@ -58,6 +62,38 @@ public class Reader
         }
 
         return instructions;
+    }
+
+    private string ParseAccumulatorToMemory(byte firstByte, FileStream fileStream)
+    {
+        byte w = (byte)(firstByte & 0b_0000_0001);
+        if (w == 1)
+        {
+            short memoryAddress = ByteParser.GetShortAsString(fileStream);
+            return $"mov [{memoryAddress}], ax";
+        }
+        else if (w == 0)
+        {
+            sbyte memoryAddress = ByteParser.GetSbyteAsString(fileStream);
+            return $"mov [{memoryAddress}], ax";
+        }
+        throw new Exception("should not throw here.");
+    }
+
+    private string ParseMemoryToAccumulator(byte firstByte, FileStream fileStream)
+    {
+        byte w = (byte)(firstByte & 0b_0000_0001);
+        if (w == 1)
+        {
+            short memoryAddress = ByteParser.GetShortAsString(fileStream);
+            return $"mov ax, [{memoryAddress}]";
+        }
+        else if (w == 0)
+        {
+            sbyte memoryAddress = ByteParser.GetSbyteAsString(fileStream);
+            return $"mov ax, [{memoryAddress}]";
+        }
+        throw new Exception("should not throw here.");
     }
 
     private string ParseImmediateToRegister(byte firstByte, FileStream fileStream)
