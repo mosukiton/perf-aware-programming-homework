@@ -106,7 +106,7 @@ public class Reader
 
     private string ParseRegisterOrMemoryTo_FromRegister(byte firstByte, FileStream fileStream)
     {
-        byte d = (byte)(firstByte & 0b_0000_0010);
+        byte d = (byte)((firstByte >> 1) & 0b_0000_0001);
         byte w = (byte)(firstByte & 0b_0000_0001);
         fileStream.Read(_buffer.AsSpan<byte>());
 
