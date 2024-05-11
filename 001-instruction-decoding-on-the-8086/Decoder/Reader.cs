@@ -25,20 +25,34 @@ public class Reader
         {
             while (fileStream.Read(bufferAsSpan) != 0)
             {
-                MovOpcode opcode = GetOpcode(bufferAsSpan[0]);
+                byte firstByte = bufferAsSpan[0];
+                MovOpcode opcode = GetOpcode(firstByte);
+                string output = "";
 
                 switch (opcode)
                 {
                     case MovOpcode.RegisterOrMemoryTo_FromRegister:
-                        instructions.Add(ParseRegisterOrMemoryTo_FromRegister(bufferAsSpan[0], fileStream));
+                        output = ParseRegisterOrMemoryTo_FromRegister(firstByte, fileStream);
+                        Console.WriteLine(output);
+                        instructions.Add(output);
+                        break;
+                    case MovOpcode.ImmediateToRegisterOrMemory:
+                        output = ParseImmediateToRegisterOrMemory(firstByte, fileStream);
+                        instructions.Add(output);
                         break;
                     case MovOpcode.ImmediateToRegister:
-                    case MovOpcode.ImmediateToRegisterOrMemory:
+                        output = ParseImmediateToRegister(firstByte, fileStream);
+                        Console.WriteLine(output);
+                        instructions.Add(output);
+                        break;
                     case MovOpcode.MemoryToAccumulator:
+                        break;
                     case MovOpcode.AccumulatorToMemory:
+                        break;
                     case MovOpcode.RegisterOrMemoryToSegmentRegister:
+                        break;
                     case MovOpcode.SegmentRegisterToRegisterOrMemory:
-                        throw new NotImplementedException("opcodes not implemented yet.");
+                        break;
                     default:
                         throw new InvalidOperationException("invalid opcode.");
                 }
@@ -46,6 +60,48 @@ public class Reader
         }
 
         return instructions;
+    }
+
+    private string ParseImmediateToRegister(byte firstByte, FileStream fileStream)
+    {
+        byte reg = (byte)(firstByte & 0b_0000_0111);
+        byte w = (byte)((firstByte >> 3) & 0b_0000_0001);
+        string regDecoded = ByteParser.DecodeRegister(reg, w);
+        string immediate = "";
+        if (w == 1)
+        {
+            immediate = ByteParser.GetUshortIntegerAsString(fileStream);
+        }
+        else if (w == 0)
+        {
+            immediate = ByteParser.GetByteIntegerAsString(fileStream);
+        }
+
+        return $"mov {regDecoded}, {immediate}";
+    }
+
+    private string ParseImmediateToRegisterOrMemory(byte firstByte, FileStream fileStream)
+    {
+        byte w = (byte)(firstByte & 0b_0000_0001);
+        fileStream.Read(_buffer.AsSpan<byte>());
+        byte mod = (byte)((_buffer[0] >> 6) & 0b_0000_0011);
+        byte r_m = (byte)(_buffer[0] & 0b_0000_0111);
+
+        string r_mDecoded = ByteParser.DecodeR_M(
+            mod: mod,
+            r_m: r_m,
+            w: w,
+            fileStream: fileStream);
+        string immediate = "";
+        if (w == 1)
+        {
+            immediate = $"word {ByteParser.GetUshortIntegerAsString(fileStream)}";
+        }
+        else if (w == 0)
+        {
+            immediate = $"byte {ByteParser.GetByteIntegerAsString(fileStream)}";
+        }
+        return $"mov {r_mDecoded}, {immediate}";
     }
 
     private string ParseRegisterOrMemoryTo_FromRegister(byte firstByte, FileStream fileStream)
