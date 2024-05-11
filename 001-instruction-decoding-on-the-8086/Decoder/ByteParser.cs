@@ -51,19 +51,18 @@ public static class ByteParser
     {
         byte[] buffer = new byte[1];
         fileStream.Read(buffer.AsSpan<byte>());
-        int value = checked((int)buffer[0]);
+        sbyte value = unchecked((sbyte)buffer[0]);
         return value.ToString();
     }
     
     public static string GetUshortIntegerAsString(FileStream fileStream)
     {
-        ushort orderedBits;
+        short orderedBits;
         byte[] buffer = new byte[2];
-        fileStream.Read(buffer.AsSpan<byte>());
-        orderedBits = (ushort)(buffer[1] << 16);
-        orderedBits = (ushort)(buffer[0] << 8);
-        int value = checked((int)orderedBits);
-        return value.ToString();
+        int  bytesRead = fileStream.Read(buffer.AsSpan<byte>());
+        orderedBits = (short)(buffer[1] << 8);
+        orderedBits = (short)((ushort)orderedBits | (buffer[0]));
+        return orderedBits.ToString();
     }
 
     public static string DecodeRegister(byte reg, byte w)
