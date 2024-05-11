@@ -67,7 +67,7 @@ public class Reader
         byte reg = (byte)(firstByte & 0b_0000_0111);
         byte w = (byte)((firstByte >> 3) & 0b_0000_0001);
         string regDecoded = ByteParser.DecodeRegister(reg, w);
-        string immediate = "";
+        short immediate = 0;
         if (w == 1)
         {
             immediate = ByteParser.GetUshortIntegerAsString(fileStream);

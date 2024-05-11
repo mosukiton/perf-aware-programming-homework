@@ -12,10 +12,10 @@ public static class ByteParser
 
     public static string ByteDisplacementMemoryMode(byte r_m, FileStream fileStream)
     {
-        return DisplacementMemoryModeImplementation(r_m, GetByteIntegerAsString(fileStream));
+        return DisplacementMemoryModeImplementation(r_m, (short)GetByteIntegerAsString(fileStream));
     }
 
-    public static string DisplacementMemoryModeImplementation(byte r_m, string displacementValue)
+    public static string DisplacementMemoryModeImplementation(byte r_m, short displacementValue)
     {
         return r_m switch
         {
@@ -41,28 +41,28 @@ public static class ByteParser
             0b011 => "[bp + di]",
             0b100 => "si",
             0b101 => "di",
-            0b110 => GetUshortIntegerAsString(fileStream),
+            0b110 => $"{GetUshortIntegerAsString(fileStream)}",
             0b111 => "bx",
             _ => throw new Exception("invalid reg value")
         };
     }
 
-    public static string GetByteIntegerAsString(FileStream fileStream)
+    public static sbyte GetByteIntegerAsString(FileStream fileStream)
     {
         byte[] buffer = new byte[1];
         fileStream.Read(buffer.AsSpan<byte>());
         sbyte value = unchecked((sbyte)buffer[0]);
-        return value.ToString();
+        return value;
     }
     
-    public static string GetUshortIntegerAsString(FileStream fileStream)
+    public static short GetUshortIntegerAsString(FileStream fileStream)
     {
         short orderedBits;
         byte[] buffer = new byte[2];
         int  bytesRead = fileStream.Read(buffer.AsSpan<byte>());
         orderedBits = (short)(buffer[1] << 8);
         orderedBits = (short)((ushort)orderedBits | (buffer[0]));
-        return orderedBits.ToString();
+        return orderedBits;
     }
 
     public static string DecodeRegister(byte reg, byte w)
