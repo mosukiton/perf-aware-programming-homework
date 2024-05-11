@@ -68,11 +68,11 @@ public class Reader
         short immediate = 0;
         if (w == 1)
         {
-            immediate = ByteParser.GetUshortIntegerAsString(fileStream);
+            immediate = ByteParser.GetShortAsString(fileStream);
         }
         else if (w == 0)
         {
-            immediate = ByteParser.GetByteIntegerAsString(fileStream);
+            immediate = ByteParser.GetSbyteAsString(fileStream);
         }
 
         return $"mov {regDecoded}, {immediate}";
@@ -93,11 +93,11 @@ public class Reader
         string immediate = "";
         if (w == 1)
         {
-            immediate = $"word {ByteParser.GetUshortIntegerAsString(fileStream)}";
+            immediate = $"word {ByteParser.GetShortAsString(fileStream)}";
         }
         else if (w == 0)
         {
-            immediate = $"byte {ByteParser.GetByteIntegerAsString(fileStream)}";
+            immediate = $"byte {ByteParser.GetSbyteAsString(fileStream)}";
         }
         return $"mov {r_mDecoded}, {immediate}";
     }

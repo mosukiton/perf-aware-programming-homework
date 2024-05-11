@@ -7,12 +7,12 @@ public static class ByteParser
 {
     public static string UshortDisplacementMemoryMode(byte r_m, FileStream fileStream)
     {
-        return DisplacementMemoryModeImplementation(r_m, GetUshortIntegerAsString(fileStream));
+        return DisplacementMemoryModeImplementation(r_m, GetShortAsString(fileStream));
     }
 
     public static string ByteDisplacementMemoryMode(byte r_m, FileStream fileStream)
     {
-        return DisplacementMemoryModeImplementation(r_m, (short)GetByteIntegerAsString(fileStream));
+        return DisplacementMemoryModeImplementation(r_m, (short)GetSbyteAsString(fileStream));
     }
 
     public static string DisplacementMemoryModeImplementation(byte r_m, short displacementValue)
@@ -42,13 +42,13 @@ public static class ByteParser
             0b011 => "[bp + di]",
             0b100 => "si",
             0b101 => "di",
-            0b110 => $"[{GetUshortIntegerAsString(fileStream)}]",
+            0b110 => $"[{GetShortAsString(fileStream)}]",
             0b111 => "bx",
             _ => throw new Exception("invalid reg value")
         };
     }
 
-    public static sbyte GetByteIntegerAsString(FileStream fileStream)
+    public static sbyte GetSbyteAsString(FileStream fileStream)
     {
         byte[] buffer = new byte[1];
         fileStream.Read(buffer.AsSpan<byte>());
@@ -56,7 +56,7 @@ public static class ByteParser
         return value;
     }
     
-    public static short GetUshortIntegerAsString(FileStream fileStream)
+    public static short GetShortAsString(FileStream fileStream)
     {
         short orderedBits;
         byte[] buffer = new byte[2];
