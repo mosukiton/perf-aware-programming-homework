@@ -19,14 +19,14 @@ public static class ByteParser
     {
         return r_m switch
         {
-            0b000 => $"[bx + si + {displacementValue}]",
-            0b001 => $"[bx + di + {displacementValue}]",
-            0b010 => $"[bp + si + {displacementValue}]",
-            0b011 => $"[bp + di + {displacementValue}]",
-            0b100 => $"si + {displacementValue}",
-            0b101 => $"di + {displacementValue}",
-            0b110 => $"bp + {displacementValue}",
-            0b111 => $"bx + {displacementValue}",
+            0b000 => displacementValue == 0 ? $"[bx + si]" : $"[bx + si + {displacementValue}]",
+            0b001 => displacementValue == 0 ? $"[bx + di]" : $"[bx + di + {displacementValue}]",
+            0b010 => displacementValue == 0 ? $"[bp + si]" : $"[bp + si + {displacementValue}]",
+            0b011 => displacementValue == 0 ? $"[bp + di]" : $"[bp + di + {displacementValue}]",
+            0b100 => displacementValue == 0 ? $"[si]" : $"[si + {displacementValue}]",
+            0b101 => displacementValue == 0 ? $"[di]" : $"[di + {displacementValue}]",
+            0b110 => displacementValue == 0 ? $"[bp]" : $"[bp + {displacementValue}]",
+            0b111 => displacementValue == 0 ? $"[bx]" : $"[bx + {displacementValue}]",
             _ => throw new InvalidOperationException("invalid reg value")
         };
     }
