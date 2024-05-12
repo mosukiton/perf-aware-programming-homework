@@ -26,34 +26,39 @@ public class Reader
             while (fileStream.Read(bufferAsSpan) != 0)
             {
                 byte firstByte = bufferAsSpan[0];
-                MovOpcode opcode = GetOpcode(firstByte);
+                Opcode opcode = GetOpcode(firstByte);
                 string output = "";
 
                 switch (opcode)
                 {
-                    case MovOpcode.RegisterOrMemoryTo_FromRegister:
+                    case Opcode.MovRegisterOrMemoryTo_FromRegister:
                         output = ParseRegisterOrMemoryTo_FromRegister(firstByte, fileStream);
                         instructions.Add(output);
+                        Console.WriteLine(output);
                         break;
-                    case MovOpcode.ImmediateToRegisterOrMemory:
+                    case Opcode.MovImmediateToRegisterOrMemory:
                         output = ParseImmediateToRegisterOrMemory(firstByte, fileStream);
                         instructions.Add(output);
+                        Console.WriteLine(output);
                         break;
-                    case MovOpcode.ImmediateToRegister:
+                    case Opcode.MovImmediateToRegister:
                         output = ParseImmediateToRegister(firstByte, fileStream);
                         instructions.Add(output);
+                        Console.WriteLine(output);
                         break;
-                    case MovOpcode.MemoryToAccumulator:
+                    case Opcode.MovMemoryToAccumulator:
                         output = ParseMemoryToAccumulator(firstByte, fileStream);
                         instructions.Add(output);
+                        Console.WriteLine(output);
                         break;
-                    case MovOpcode.AccumulatorToMemory:
+                    case Opcode.MovAccumulatorToMemory:
                         output = ParseAccumulatorToMemory(firstByte, fileStream);
                         instructions.Add(output);
+                        Console.WriteLine(output);
                         break;
-                    case MovOpcode.RegisterOrMemoryToSegmentRegister:
+                    case Opcode.MovRegisterOrMemoryToSegmentRegister:
                         break;
-                    case MovOpcode.SegmentRegisterToRegisterOrMemory:
+                    case Opcode.MovSegmentRegisterToRegisterOrMemory:
                         break;
                     default:
                         throw new InvalidOperationException("invalid opcode.");
@@ -168,41 +173,41 @@ public class Reader
         throw new Exception("should not throw here.");
     }
 
-    private MovOpcode GetOpcode(byte first)
+    private Opcode GetOpcode(byte first)
     {
         if (first >> 2 == 0b_0010_0010)
         {
-            return MovOpcode.RegisterOrMemoryTo_FromRegister;
+            return Opcode.MovRegisterOrMemoryTo_FromRegister;
         }
 
         if (first >> 1 == 0b_0110_0011)
         {
-            return MovOpcode.ImmediateToRegisterOrMemory;
+            return Opcode.MovImmediateToRegisterOrMemory;
         }
 
         if (first >> 4 == 0b_0000_1011)
         {
-            return MovOpcode.ImmediateToRegister;
+            return Opcode.MovImmediateToRegister;
         }
 
         if (first >> 1 == 0b_0101_0000)
         {
-            return MovOpcode.MemoryToAccumulator;
+            return Opcode.MovMemoryToAccumulator;
         }
 
         if (first >> 1 == 0b_0101_0001)
         {
-            return MovOpcode.AccumulatorToMemory;
+            return Opcode.MovAccumulatorToMemory;
         }
 
         if (first == 0b_1000_1110)
         {
-            return MovOpcode.RegisterOrMemoryToSegmentRegister;
+            return Opcode.MovRegisterOrMemoryToSegmentRegister;
         }
 
         if (first >> 1 == 0b_1000_1100)
         {
-            return MovOpcode.SegmentRegisterToRegisterOrMemory;
+            return Opcode.MovSegmentRegisterToRegisterOrMemory;
         }
 
         throw new InvalidOperationException($"unrecognisable opcode: {Convert.ToString(first, 2)}");
