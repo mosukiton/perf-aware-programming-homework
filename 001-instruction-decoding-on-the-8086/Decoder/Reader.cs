@@ -31,34 +31,30 @@ public class Reader
 
                 switch (opcode)
                 {
-                    case Opcode.MovRegisterOrMemoryTo_FromRegister:
+                    case Opcode.Mov_RegisterOrMemoryTo_FromRegister:
                         output = ParseRegisterOrMemoryTo_FromRegister(firstByte, fileStream);
                         instructions.Add(output);
                         Console.WriteLine(output);
                         break;
-                    case Opcode.MovImmediateToRegisterOrMemory:
+                    case Opcode.Mov_ImmediateToRegisterOrMemory:
                         output = ParseImmediateToRegisterOrMemory(firstByte, fileStream);
                         instructions.Add(output);
                         Console.WriteLine(output);
                         break;
-                    case Opcode.MovImmediateToRegister:
+                    case Opcode.Mov_ImmediateToRegister:
                         output = ParseImmediateToRegister(firstByte, fileStream);
                         instructions.Add(output);
                         Console.WriteLine(output);
                         break;
-                    case Opcode.MovMemoryToAccumulator:
+                    case Opcode.Mov_MemoryToAccumulator:
                         output = ParseMemoryToAccumulator(firstByte, fileStream);
                         instructions.Add(output);
                         Console.WriteLine(output);
                         break;
-                    case Opcode.MovAccumulatorToMemory:
+                    case Opcode.Mov_AccumulatorToMemory:
                         output = ParseAccumulatorToMemory(firstByte, fileStream);
                         instructions.Add(output);
                         Console.WriteLine(output);
-                        break;
-                    case Opcode.MovRegisterOrMemoryToSegmentRegister:
-                        break;
-                    case Opcode.MovSegmentRegisterToRegisterOrMemory:
                         break;
                     default:
                         throw new InvalidOperationException("invalid opcode.");
@@ -177,37 +173,27 @@ public class Reader
     {
         if (first >> 2 == 0b_0010_0010)
         {
-            return Opcode.MovRegisterOrMemoryTo_FromRegister;
+            return Opcode.Mov_RegisterOrMemoryTo_FromRegister;
         }
 
         if (first >> 1 == 0b_0110_0011)
         {
-            return Opcode.MovImmediateToRegisterOrMemory;
+            return Opcode.Mov_ImmediateToRegisterOrMemory;
         }
 
         if (first >> 4 == 0b_0000_1011)
         {
-            return Opcode.MovImmediateToRegister;
+            return Opcode.Mov_ImmediateToRegister;
         }
 
         if (first >> 1 == 0b_0101_0000)
         {
-            return Opcode.MovMemoryToAccumulator;
+            return Opcode.Mov_MemoryToAccumulator;
         }
 
         if (first >> 1 == 0b_0101_0001)
         {
-            return Opcode.MovAccumulatorToMemory;
-        }
-
-        if (first == 0b_1000_1110)
-        {
-            return Opcode.MovRegisterOrMemoryToSegmentRegister;
-        }
-
-        if (first >> 1 == 0b_1000_1100)
-        {
-            return Opcode.MovSegmentRegisterToRegisterOrMemory;
+            return Opcode.Mov_AccumulatorToMemory;
         }
 
         throw new InvalidOperationException($"unrecognisable opcode: {Convert.ToString(first, 2)}");

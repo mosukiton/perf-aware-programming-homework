@@ -2,11 +2,9 @@ namespace Homework001.Instructions;
     
 public enum Opcode
 {
-    MovRegisterOrMemoryTo_FromRegister,
-    MovImmediateToRegisterOrMemory,
-    MovImmediateToRegister,
-    MovMemoryToAccumulator,
-    MovAccumulatorToMemory,
-    MovRegisterOrMemoryToSegmentRegister,
-    MovSegmentRegisterToRegisterOrMemory,
+    Mov_RegisterOrMemoryTo_FromRegister,
+    Mov_ImmediateToRegisterOrMemory,
+    Mov_ImmediateToRegister,
+    Mov_MemoryToAccumulator,
+    Mov_AccumulatorToMemory,
 }
