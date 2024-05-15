@@ -26,38 +26,70 @@ public class Reader
             while (fileStream.Read(bufferAsSpan) != 0)
             {
                 byte firstByte = bufferAsSpan[0];
-                Opcode opcode = GetOpcode(firstByte);
+                Opcode opcode = OpcodeParser.Parse(firstByte);
                 string output = "";
 
                 switch (opcode)
                 {
-                    case Opcode.Mov_RegisterOrMemoryTo_FromRegister:
-                        output = ParseRegisterOrMemoryTo_FromRegister(firstByte, fileStream);
-                        instructions.Add(output);
+                    case Opcode.Mov_RegOrMemTo_FromReg:
+                    case Opcode.Add_RegOrMemWithRegToEither:
+                    case Opcode.Sub_RegOrMemAndRegToEither:
+                    case Opcode.Cmp_RegOrMemAndReg:
+                        output = ParseRegisterOrMemoryTo_FromRegister(opcode, firstByte, fileStream);
                         Console.WriteLine(output);
-                        break;
-                    case Opcode.Mov_ImmediateToRegisterOrMemory:
-                        output = ParseImmediateToRegisterOrMemory(firstByte, fileStream);
                         instructions.Add(output);
-                        Console.WriteLine(output);
                         break;
-                    case Opcode.Mov_ImmediateToRegister:
+                    case Opcode.Mov_ImmediateToRegOrMem:
+                        output = ParseImmediateToRegisterOrMemory(opcode, firstByte, fileStream);
+                        Console.WriteLine(output);
+                        instructions.Add(output);
+                        break;
+                    case Opcode.Mov_ImmediateToReg:
                         output = ParseImmediateToRegister(firstByte, fileStream);
-                        instructions.Add(output);
                         Console.WriteLine(output);
+                        instructions.Add(output);
                         break;
-                    case Opcode.Mov_MemoryToAccumulator:
+                    case Opcode.Mov_MemToAcc:
                         output = ParseMemoryToAccumulator(firstByte, fileStream);
-                        instructions.Add(output);
                         Console.WriteLine(output);
+                        instructions.Add(output);
                         break;
-                    case Opcode.Mov_AccumulatorToMemory:
+                    case Opcode.Mov_AccToMem:
                         output = ParseAccumulatorToMemory(firstByte, fileStream);
+                        Console.WriteLine(output);
                         instructions.Add(output);
+                        break;
+                    case Opcode.Add_ImmediateToAcc:
+                    case Opcode.Sub_ImmediateFromAcc:
+                    case Opcode.Cmp_ImmediateWithAcc:
+                        output = ParseImmediateToAccumulator(opcode, firstByte, fileStream);
+                        Console.WriteLine(output);
+                        instructions.Add(output);
+                        break;
+                    case Opcode.Add_Sub_Cmp_ImmediateToRegOrMem:
+                        output = ParseImmediateToRegisterOrMemory(opcode, firstByte, fileStream);
+                        Console.WriteLine(output);
+                        instructions.Add(output);
+                        break;
+                    case Opcode.JE_JZ:
+                    case Opcode.JL_JNGE:
+                    case Opcode.JLE_JNG:
+                    case Opcode.JB_JNAE:
+                    case Opcode.JBE_JNA:
+                    case Opcode.JP_JPE:
+                    case Opcode.JO:
+                    case Opcode.JS:
+                    case Opcode.JNS:
+                    case Opcode.JNE_JNZ:
+                    case Opcode.JNL_JGE:
+                    case Opcode.JNLE_JG:
+                    case Opcode.JNB_JAE:
+                    case Opcode.JNBE_JA:
+                    case Opcode.JNP_JPO:
+                    case Opcode.JNO:
+                        output = ParseConditionalJump(opcode, fileStream);
                         Console.WriteLine(output);
                         break;
-                    default:
-                        throw new InvalidOperationException("invalid opcode.");
                 }
             }
         }
@@ -167,35 +199,5 @@ public class Reader
         }
 
         throw new Exception("should not throw here.");
-    }
-
-    private Opcode GetOpcode(byte first)
-    {
-        if (first >> 2 == 0b_0010_0010)
-        {
-            return Opcode.Mov_RegisterOrMemoryTo_FromRegister;
-        }
-
-        if (first >> 1 == 0b_0110_0011)
-        {
-            return Opcode.Mov_ImmediateToRegisterOrMemory;
-        }
-
-        if (first >> 4 == 0b_0000_1011)
-        {
-            return Opcode.Mov_ImmediateToRegister;
-        }
-
-        if (first >> 1 == 0b_0101_0000)
-        {
-            return Opcode.Mov_MemoryToAccumulator;
-        }
-
-        if (first >> 1 == 0b_0101_0001)
-        {
-            return Opcode.Mov_AccumulatorToMemory;
-        }
-
-        throw new InvalidOperationException($"unrecognisable opcode: {Convert.ToString(first, 2)}");
     }
 }
