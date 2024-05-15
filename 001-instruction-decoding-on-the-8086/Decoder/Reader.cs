@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Homework001.Instructions;
 
 namespace Homework001;
@@ -97,6 +98,39 @@ public class Reader
         return instructions;
     }
 
+    private string ParseImmediateToAccumulator(Opcode opcode, byte firstByte, FileStream fileStream)
+    {
+        string instruction = opcode
+            .ToString()
+            .Split('_', StringSplitOptions.RemoveEmptyEntries)[0]
+            .ToLowerInvariant();
+        byte w = (byte)(firstByte & 0b_0000_0001);
+        short immediate = 0;
+        if (w == 1)
+        {
+            immediate = ByteParser.GetShortAsString(fileStream);
+        }
+        else if (w == 0)
+        {
+            immediate = ByteParser.GetSbyteAsString(fileStream);
+        }
+
+        return $"{instruction} ax, {immediate}";
+    }
+
+    private string ParseConditionalJump(Opcode opcode, FileStream fileStream)
+    {
+        string conditionalJumpInstruction = opcode
+            .ToString()
+            .Split('_', StringSplitOptions.RemoveEmptyEntries)[0]
+            .ToLowerInvariant();
+
+        sbyte instructionPointerIncrementValue = ByteParser.GetSbyteAsString(fileStream);
+        string output =  $"{conditionalJumpInstruction} {instructionPointerIncrementValue}";
+        Console.WriteLine(output);
+        return output;
+    }
+
     private string ParseAccumulatorToMemory(byte firstByte, FileStream fileStream)
     {
         byte w = (byte)(firstByte & 0b_0000_0001);
@@ -147,10 +181,41 @@ public class Reader
         return $"mov {regDecoded}, {immediate}";
     }
 
-    private string ParseImmediateToRegisterOrMemory(byte firstByte, FileStream fileStream)
+    private string ParseImmediateToRegisterOrMemory(Opcode opcode, byte firstByte, FileStream fileStream)
     {
+        string instruction = "";
         byte w = (byte)(firstByte & 0b_0000_0001);
+        byte s = (byte)((firstByte >> 1) & 0b_0000_0001);
+
+        bool wide = Convert.ToBoolean(w);
+        bool signed = Convert.ToBoolean(s);
+
         fileStream.Read(_buffer.AsSpan<byte>());
+
+        if (opcode == Opcode.Mov_ImmediateToRegOrMem &&
+            (_buffer[0] >> 3) == 0b_000)
+        {
+            instruction = "mov";
+        }
+        else if (opcode == Opcode.Add_Sub_Cmp_ImmediateToRegOrMem)
+        {
+            byte code = (byte)((_buffer[0] >> 3) & 0b_0000_0111);
+            ImmediateToRegisterOrMemorySubCode subcode = (ImmediateToRegisterOrMemorySubCode)code;
+
+            if (!signed && wide)
+            {
+                instruction = $"{subcode} word";
+            }
+            else if (!wide)
+            {
+                instruction = $"{subcode} byte";
+            }
+            else
+            {
+                instruction = $"{subcode}";
+            }
+        }
+
         byte mod = (byte)((_buffer[0] >> 6) & 0b_0000_0011);
         byte r_m = (byte)(_buffer[0] & 0b_0000_0111);
 
@@ -159,20 +224,49 @@ public class Reader
             r_m: r_m,
             w: w,
             fileStream: fileStream);
+
         string immediate = "";
-        if (w == 1)
+        if (opcode == Opcode.Mov_ImmediateToRegOrMem)
         {
-            immediate = $"word {ByteParser.GetShortAsString(fileStream)}";
-        }
-        else if (w == 0)
-        {
+            if (wide)
+            {
+                immediate = $"word {ByteParser.GetShortAsString(fileStream)}";
+            }
+
             immediate = $"byte {ByteParser.GetSbyteAsString(fileStream)}";
         }
-        return $"mov {r_mDecoded}, {immediate}";
+        else if (opcode == Opcode.Add_Sub_Cmp_ImmediateToRegOrMem)
+        {
+            // Console.WriteLine($"signed: {signed}, wide: {wide}");
+            if (signed)
+            {
+                // if (wide)
+                // {
+                //     immediate = $"{ByteParser.GetShortAsString(fileStream)}";
+                // }
+
+                immediate = $"{ByteParser.GetSbyteAsString(fileStream)}";
+            }
+            else
+            {
+                if (wide)
+                {
+                    immediate = $"{ByteParser.GetUShortAsString(fileStream)}";
+                }
+                
+                immediate = $"{ByteParser.GetByteAsString(fileStream)}";
+            }
+        }
+        return $"{instruction} {r_mDecoded}, {immediate}";
     }
 
-    private string ParseRegisterOrMemoryTo_FromRegister(byte firstByte, FileStream fileStream)
+    private string ParseRegisterOrMemoryTo_FromRegister(Opcode opcode, byte firstByte, FileStream fileStream)
     {
+        string instruction = opcode
+            .ToString()
+            .Split('_', StringSplitOptions.RemoveEmptyEntries)[0]
+            .ToLowerInvariant();
+
         byte d = (byte)((firstByte >> 1) & 0b_0000_0001);
         byte w = (byte)(firstByte & 0b_0000_0001);
         fileStream.Read(_buffer.AsSpan<byte>());
@@ -190,12 +284,12 @@ public class Reader
         if (d == 1)
         {
             // reg is source field
-            return $"mov {regDecoded}, {r_mDecoded}";
+            return $"{instruction} {regDecoded}, {r_mDecoded}";
         }
         else if (d == 0)
         {
             // reg is destination field
-            return $"mov {r_mDecoded}, {regDecoded}";
+            return $"{instruction} {r_mDecoded}, {regDecoded}";
         }
 
         throw new Exception("should not throw here.");

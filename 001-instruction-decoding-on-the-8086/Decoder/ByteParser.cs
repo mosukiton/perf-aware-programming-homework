@@ -56,6 +56,13 @@ public static class ByteParser
         return value;
     }
     
+    public static byte GetByteAsString(FileStream fileStream)
+    {
+        byte[] buffer = new byte[1];
+        fileStream.Read(buffer.AsSpan<byte>());
+        return buffer[0];
+    }
+    
     public static short GetShortAsString(FileStream fileStream)
     {
         short orderedBits;
@@ -63,6 +70,16 @@ public static class ByteParser
         int  bytesRead = fileStream.Read(buffer.AsSpan<byte>());
         orderedBits = (short)(buffer[1] << 8);
         orderedBits = (short)((ushort)orderedBits | (buffer[0]));
+        return orderedBits;
+    }
+
+    public static ushort GetUShortAsString(FileStream fileStream)
+    {
+        ushort orderedBits;
+        byte[] buffer = new byte[2];
+        int  bytesRead = fileStream.Read(buffer.AsSpan<byte>());
+        orderedBits = (ushort)(buffer[1] << 8);
+        orderedBits = (ushort)(orderedBits | (buffer[0]));
         return orderedBits;
     }
 
