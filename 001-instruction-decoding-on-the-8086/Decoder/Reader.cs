@@ -104,18 +104,20 @@ public class Reader
             .ToString()
             .Split('_', StringSplitOptions.RemoveEmptyEntries)[0]
             .ToLowerInvariant();
+
         byte w = (byte)(firstByte & 0b_0000_0001);
+        bool wide = Convert.ToBoolean(w);
+        
         short immediate = 0;
-        if (w == 1)
+        if (wide)
         {
             immediate = ByteParser.GetShortAsString(fileStream);
-        }
-        else if (w == 0)
-        {
-            immediate = ByteParser.GetSbyteAsString(fileStream);
+            return $"{instruction} ax, {immediate}";
         }
 
-        return $"{instruction} ax, {immediate}";
+        immediate = ByteParser.GetSbyteAsString(fileStream);
+        return $"{instruction} al, {immediate}";
+
     }
 
     private string ParseConditionalJump(Opcode opcode, FileStream fileStream)
