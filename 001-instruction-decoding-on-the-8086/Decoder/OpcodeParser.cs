@@ -110,14 +110,18 @@ public static class OpcodeParser
     {
         bool bit6 = Convert.ToBoolean(code & 0b_0100_0000);
 
-        // 0 1 x x _ x x x x
+        return bit6 ? Pattern_01xx_xxxx(code) : Pattern_00xx_xxxx(code);
+
+    }
+
+    private static Opcode Pattern_01xx_xxxx(byte code)
+    {
         if (Convert.ToBoolean(code & 0b_0010_0000) && // 0 1 1 x _ x x x x
             Convert.ToBoolean(code & 0b_0001_0000)) // 0 1 1 1 _ x x x x
         {
             return Pattern_0111_xxxx(code);
         }
-
-        return Pattern_00xx_xxxx(code);
+        throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
     }
 
     private static Opcode Pattern_00xx_xxxx(byte code)
