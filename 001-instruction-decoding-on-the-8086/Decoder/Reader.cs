@@ -119,46 +119,43 @@ public class Reader
     private string ParseAccumulatorToMemory(byte firstByte, FileStream fileStream)
     {
         byte w = (byte)(firstByte & 0b_0000_0001);
-        if (w == 1)
+        bool wide = Convert.ToBoolean(w);
+        if (wide)
         {
-            short memoryAddress = ByteParser.GetShortAsString(fileStream);
-            return $"mov [{memoryAddress}], ax";
+            return $"mov [{ByteParser.GetShortAsString(fileStream)}], ax";
         }
-        else if (w == 0)
-        {
-            sbyte memoryAddress = ByteParser.GetSbyteAsString(fileStream);
-            return $"mov [{memoryAddress}], ax";
-        }
-        throw new Exception("should not throw here.");
+
+        return $"mov [{ByteParser.GetSbyteAsString(fileStream)}], ax";
     }
 
     private string ParseMemoryToAccumulator(byte firstByte, FileStream fileStream)
     {
         byte w = (byte)(firstByte & 0b_0000_0001);
-        if (w == 1)
+        bool wide = Convert.ToBoolean(w);
+        if (wide)
         {
             short memoryAddress = ByteParser.GetShortAsString(fileStream);
             return $"mov ax, [{memoryAddress}]";
         }
-        else if (w == 0)
+        else
         {
             sbyte memoryAddress = ByteParser.GetSbyteAsString(fileStream);
             return $"mov ax, [{memoryAddress}]";
         }
-        throw new Exception("should not throw here.");
     }
 
     private string ParseImmediateToRegister(byte firstByte, FileStream fileStream)
     {
         byte reg = (byte)(firstByte & 0b_0000_0111);
         byte w = (byte)((firstByte >> 3) & 0b_0000_0001);
+        bool wide = Convert.ToBoolean(w);
         string regDecoded = ByteParser.DecodeRegister(reg, w);
         short immediate = 0;
-        if (w == 1)
+        if (wide)
         {
             immediate = ByteParser.GetShortAsString(fileStream);
         }
-        else if (w == 0)
+        else
         {
             immediate = ByteParser.GetSbyteAsString(fileStream);
         }
@@ -253,6 +250,8 @@ public class Reader
             .ToLowerInvariant();
 
         byte d = (byte)((firstByte >> 1) & 0b_0000_0001);
+        bool isRegTheSourceField = Convert.ToBoolean(d);
+
         byte w = (byte)(firstByte & 0b_0000_0001);
         fileStream.Read(_buffer.AsSpan<byte>());
 
@@ -266,14 +265,12 @@ public class Reader
             w: w,
             fileStream: fileStream);
 
-        if (d == 1)
+        if (isRegTheSourceField)
         {
-            // reg is source field
             return $"{instruction} {regDecoded}, {r_mDecoded}";
         }
-        else if (d == 0)
+        else
         {
-            // reg is destination field
             return $"{instruction} {r_mDecoded}, {regDecoded}";
         }
 
