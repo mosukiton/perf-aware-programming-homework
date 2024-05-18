@@ -2,7 +2,7 @@ using System;
 using Homework001.Extensions;
 using Homework001.Instructions;
 
-namespace Homework001;
+namespace Homework001.Parsing;
 
 public static class OpcodeParser
 {
