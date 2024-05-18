@@ -17,10 +17,11 @@ public class Reader
         _buffer = new byte[1];
     }
 
-    public List<string> ReadFile()
+    public List<string> Instructions { get; private set; } = new();
+
+    public void ReadFile()
     {
-        List<string> instructions = new();
-        instructions.Add("bits 16");
+        Instructions.Add("bits 16");
         Span<byte> bufferAsSpan = _buffer;
         using (FileStream fileStream = File.Open(_inputFilePath, FileMode.Open))
         {
@@ -28,7 +29,6 @@ public class Reader
             {
                 byte firstByte = bufferAsSpan[0];
                 Opcode opcode = OpcodeParser.Parse(firstByte);
-                string output = "";
 
                 switch (opcode)
                 {
@@ -36,41 +36,27 @@ public class Reader
                     case Opcode.Add_RegOrMemWithRegToEither:
                     case Opcode.Sub_RegOrMemAndRegToEither:
                     case Opcode.Cmp_RegOrMemAndReg:
-                        output = ParseRegisterOrMemoryTo_FromRegister(opcode, firstByte, fileStream);
-                        Console.WriteLine(output);
-                        instructions.Add(output);
+                        Instructions.Add(ParseRegisterOrMemoryTo_FromRegister(opcode, firstByte, fileStream));
                         break;
                     case Opcode.Mov_ImmediateToRegOrMem:
-                        output = ParseImmediateToRegisterOrMemory(opcode, firstByte, fileStream);
-                        Console.WriteLine(output);
-                        instructions.Add(output);
+                        Instructions.Add(ParseImmediateToRegisterOrMemory(opcode, firstByte, fileStream));
                         break;
                     case Opcode.Mov_ImmediateToReg:
-                        output = ParseImmediateToRegister(firstByte, fileStream);
-                        Console.WriteLine(output);
-                        instructions.Add(output);
+                        Instructions.Add(ParseImmediateToRegister(firstByte, fileStream));
                         break;
                     case Opcode.Mov_MemToAcc:
-                        output = ParseMemoryToAccumulator(firstByte, fileStream);
-                        Console.WriteLine(output);
-                        instructions.Add(output);
+                        Instructions.Add(ParseMemoryToAccumulator(firstByte, fileStream));
                         break;
                     case Opcode.Mov_AccToMem:
-                        output = ParseAccumulatorToMemory(firstByte, fileStream);
-                        Console.WriteLine(output);
-                        instructions.Add(output);
+                        Instructions.Add(ParseAccumulatorToMemory(firstByte, fileStream));
                         break;
                     case Opcode.Add_ImmediateToAcc:
                     case Opcode.Sub_ImmediateFromAcc:
                     case Opcode.Cmp_ImmediateWithAcc:
-                        output = ParseImmediateToAccumulator(opcode, firstByte, fileStream);
-                        Console.WriteLine(output);
-                        instructions.Add(output);
+                        Instructions.Add(ParseImmediateToAccumulator(opcode, firstByte, fileStream));
                         break;
                     case Opcode.Add_Sub_Cmp_ImmediateToRegOrMem:
-                        output = ParseImmediateToRegisterOrMemory(opcode, firstByte, fileStream);
-                        Console.WriteLine(output);
-                        instructions.Add(output);
+                        Instructions.Add(ParseImmediateToRegisterOrMemory(opcode, firstByte, fileStream));
                         break;
                     case Opcode.JE_JZ:
                     case Opcode.JL_JNGE:
@@ -88,14 +74,11 @@ public class Reader
                     case Opcode.JNBE_JA:
                     case Opcode.JNP_JPO:
                     case Opcode.JNO:
-                        output = ParseConditionalJump(opcode, fileStream);
-                        Console.WriteLine(output);
+                        Instructions.Add(ParseConditionalJump(opcode, fileStream));
                         break;
                 }
             }
         }
-
-        return instructions;
     }
 
     private string ParseImmediateToAccumulator(Opcode opcode, byte firstByte, FileStream fileStream)
