@@ -1,4 +1,5 @@
 using System;
+using Homework001.Extensions;
 using Homework001.Instructions;
 
 namespace Homework001;
@@ -41,7 +42,7 @@ public static class OpcodeParser
             return Opcode.Mov_ImmediateToRegOrMem;
         }
 
-        throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+        throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
     }
 
     private static Opcode Pattern_1110_xxxx(byte code)
@@ -53,7 +54,7 @@ public static class OpcodeParser
 
         if (bit3 || bit2)
         {
-            throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+            throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
         }
 
         if (bit1)
@@ -82,7 +83,7 @@ public static class OpcodeParser
             return Opcode.Add_Sub_Cmp_ImmediateToRegOrMem;
         }
 
-        throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+        throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
     }
 
     private static Opcode Pattern_101x_xxxx(byte code)
@@ -102,7 +103,7 @@ public static class OpcodeParser
             return bit1 ? Opcode.Mov_AccToMem : Opcode.Mov_MemToAcc;
         }
 
-        throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+        throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
     }
 
     private static Opcode Pattern_0xxx_xxxx(byte code)
@@ -146,13 +147,13 @@ public static class OpcodeParser
                     return Opcode.Cmp_ImmediateWithAcc;
                 }
             }
-            throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+            throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
         }
 
         // 0 0 1 0 _ x x x x
         if (!bit3) // 0 0 1 0 _ 0 x x x
         {
-            throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+            throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
         }
 
         // 0 0 1 0 _ 1 x x x
@@ -167,7 +168,7 @@ public static class OpcodeParser
             return Opcode.Sub_ImmediateFromAcc;
         }
 
-        throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+        throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
     }
 
     private static Opcode Pattern_000x_xxxx(byte code)
@@ -179,7 +180,7 @@ public static class OpcodeParser
 
         if (bit4 | bit3)
         {
-            throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+            throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
         }
 
         // 0 0 0 0 _ 0 x x x
@@ -194,7 +195,7 @@ public static class OpcodeParser
             return Opcode.Add_ImmediateToAcc;
         }
         
-        throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+        throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
     }
 
     private static Opcode Pattern_0111_xxxx(byte code)
@@ -204,6 +205,6 @@ public static class OpcodeParser
             return (Opcode)code;
         }
 
-        throw new NotSupportedException($"Opcode not supported: {Convert.ToString(code, 2)}");
+        throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
     }
 }
