@@ -54,7 +54,7 @@ public class InstructionsManager
         if (_instructions.TryGetValue(labelIndex, out string? label) &&
             label[^1] == ':')
         {
-            return label;
+            return label[..^1]; // don't return colon
         }
 
         label = $"label_{labelId++}"; 
