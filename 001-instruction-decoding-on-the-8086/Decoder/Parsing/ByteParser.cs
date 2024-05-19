@@ -1,18 +1,24 @@
 using System;
-using System.IO;
 
 namespace Homework001.Parsing;
 
-public static class ByteParser
+public class ByteParser
 {
-    public static string UshortDisplacementMemoryMode(byte r_m, FileStream fileStream)
+    private readonly AssemblyWalker _walker;
+
+    public ByteParser(AssemblyWalker walker)
     {
-        return DisplacementMemoryModeImplementation(r_m, GetShortAsString(fileStream));
+        _walker = walker;
     }
 
-    public static string ByteDisplacementMemoryMode(byte r_m, FileStream fileStream)
+    public string UshortDisplacementMemoryMode(byte r_m)
     {
-        return DisplacementMemoryModeImplementation(r_m, (short)GetSbyteAsString(fileStream));
+        return DisplacementMemoryModeImplementation(r_m, GetShort());
+    }
+
+    public string ByteDisplacementMemoryMode(byte r_m)
+    {
+        return DisplacementMemoryModeImplementation(r_m, (short)GetSbyte());
     }
 
     public static string DisplacementMemoryModeImplementation(byte r_m, short displacementValue)
@@ -35,7 +41,7 @@ public static class ByteParser
         };
     }
 
-    public static string MostlyNoDisplacementMemoryMode(byte r_m, FileStream fileStream)
+    public string MostlyNoDisplacementMemoryMode(byte r_m)
     {
         return r_m switch
         {
@@ -45,44 +51,47 @@ public static class ByteParser
             0b011 => "[bp + di]",
             0b100 => "si",
             0b101 => "di",
-            0b110 => $"[{GetShortAsString(fileStream)}]",
+            0b110 => $"[{GetShort()}]",
             0b111 => "bx",
             _ => throw new Exception("invalid reg value")
         };
     }
 
-    public static sbyte GetSbyteAsString(FileStream fileStream)
+    public sbyte GetSbyte()
     {
-        byte[] buffer = new byte[1];
-        fileStream.Read(buffer.AsSpan<byte>());
-        sbyte value = unchecked((sbyte)buffer[0]);
+        byte nextByte = _walker.GetNextByte();
+        sbyte value = unchecked((sbyte)nextByte);
         return value;
     }
     
-    public static byte GetByteAsString(FileStream fileStream)
+    public byte GetByte()
     {
-        byte[] buffer = new byte[1];
-        fileStream.Read(buffer.AsSpan<byte>());
-        return buffer[0];
+        return _walker.GetNextByte();
     }
     
-    public static short GetShortAsString(FileStream fileStream)
+    public short GetShort()
     {
         short orderedBits;
-        byte[] buffer = new byte[2];
-        int  bytesRead = fileStream.Read(buffer.AsSpan<byte>());
-        orderedBits = (short)(buffer[1] << 8);
-        orderedBits = (short)((ushort)orderedBits | (buffer[0]));
+
+        byte lowerBits = _walker.GetNextByte();
+        byte upperBits = _walker.GetNextByte();
+
+        orderedBits = (short)(upperBits << 8);
+        orderedBits = (short)((ushort)orderedBits | (lowerBits));
+
         return orderedBits;
     }
 
-    public static ushort GetUShortAsString(FileStream fileStream)
+    public ushort GetUShort()
     {
         ushort orderedBits;
-        byte[] buffer = new byte[2];
-        int  bytesRead = fileStream.Read(buffer.AsSpan<byte>());
-        orderedBits = (ushort)(buffer[1] << 8);
-        orderedBits = (ushort)(orderedBits | (buffer[0]));
+        
+        byte lowerBits = _walker.GetNextByte();
+        byte upperBits = _walker.GetNextByte();
+
+        orderedBits = (ushort)(upperBits << 8);
+        orderedBits = (ushort)(orderedBits | (lowerBits));
+
         return orderedBits;
     }
 
@@ -121,12 +130,12 @@ public static class ByteParser
         throw new InvalidOperationException("invalid W value.");
     }
 
-    public static string DecodeR_M(byte mod, byte r_m, byte w, FileStream fileStream)
+    public string DecodeR_M(byte mod, byte r_m, byte w)
     {
         return mod switch {
-            0b00 => MostlyNoDisplacementMemoryMode(r_m, fileStream),
-            0b01 => ByteDisplacementMemoryMode(r_m, fileStream),
-            0b10 => UshortDisplacementMemoryMode(r_m, fileStream),
+            0b00 => MostlyNoDisplacementMemoryMode(r_m),
+            0b01 => ByteDisplacementMemoryMode(r_m),
+            0b10 => UshortDisplacementMemoryMode(r_m),
             0b11 => DecodeRegister(r_m, w),
             _ => throw new InvalidOperationException("unexepected w value")
         };
