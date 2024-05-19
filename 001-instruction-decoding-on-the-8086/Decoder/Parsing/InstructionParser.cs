@@ -111,7 +111,7 @@ public class InstructionParser
 
         sbyte jumpVector = _byteParser.GetSbyte();
         string label = _instructionsManager.LabelliseConditionalJumpVector(jumpVector);
-        string instruction =  $"{conditionalJumpInstruction} {label} ;{jumpVector}";
+        string instruction =  $"{conditionalJumpInstruction} {label} ; {jumpVector}";
         return instruction;
     }
 
