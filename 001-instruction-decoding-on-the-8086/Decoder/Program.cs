@@ -12,15 +12,16 @@ public class Program
         if (args.Length == 0) throw new ArgumentOutOfRangeException();
 
         AssemblyWalker walker = new(args[0]);
+        InstructionsManager instructionsManager = new(walker);
         ByteParser byteParser = new(walker);
-        InstructionParser reader = new(walker, byteParser);
+        InstructionParser reader = new(walker, byteParser, instructionsManager);
         try
         {
             reader.ReadFile();
 
             if (args.Length == 2)
             {
-                File.WriteAllLines(args[1], reader.Instructions.Values);
+                File.WriteAllLines(args[1], instructionsManager.GetAllInstructions());
             }
         }
         catch (Exception ex)
@@ -29,7 +30,7 @@ public class Program
         }
         finally
         {
-            reader.Instructions.Values.ToList().ForEach(x => Console.WriteLine(x));
+            instructionsManager.GetAllInstructions().ForEach(x => Console.WriteLine(x));
         }
     }
 }
