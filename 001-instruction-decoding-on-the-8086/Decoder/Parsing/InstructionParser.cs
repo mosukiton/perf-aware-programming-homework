@@ -70,6 +70,10 @@ public class InstructionParser
                 case Opcode.JNBE_JA:
                 case Opcode.JNP_JPO:
                 case Opcode.JNO:
+                case Opcode.LoopZ_LoopE:
+                case Opcode.LoopNZ_LoopNE:
+                case Opcode.Loop:
+                case Opcode.JCXZ:
                     _instructionsManager.Add(indexOfFirstByte.Value, ParseConditionalJump(opcode, indexOfFirstByte.Value));
                     break;
             }
