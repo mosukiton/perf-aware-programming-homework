@@ -76,9 +76,26 @@ public static class OpcodeParser
         }
 
         // 1 0 0 x _ x x x x
-        if (!Convert.ToBoolean(code & 0b_0001_0000) && // 1 0 0 0 _ x x x x 
-            !Convert.ToBoolean(code & 0b_0000_1000) && // 1 0 0 0 _ 0 x x x
-            !Convert.ToBoolean(code & 0b_0000_0100))   // 1 0 0 0 _ 0 0 x x
+        bool bit4 = Convert.ToBoolean(code & 0b_0001_0000);
+        bool bit3 = Convert.ToBoolean(code & 0b_0000_1000);
+        bool bit2 = Convert.ToBoolean(code & 0b_0000_0100);
+
+        if (bit4)
+        {
+            // 1 0 0 1 _ x x x x
+            throw new NotSupportedException($"Opcode not supported: {code.GetBits()}");
+        }
+
+        if (bit3 && // 1 0 0 0 _ 1 x x x
+            !bit2)  // 1 0 0 0 _ 1 0 x x
+        {
+            // 1 0 0 0 _ 1 0 x x
+            return Opcode.Mov_RegOrMemTo_FromReg;
+        }
+
+        if (!bit4 && // 1 0 0 0 _ x x x x 
+            !bit3 && // 1 0 0 0 _ 0 x x x
+            !bit2)   // 1 0 0 0 _ 0 0 x x
         {
             return Opcode.Add_Sub_Cmp_ImmediateToRegOrMem;
         }
