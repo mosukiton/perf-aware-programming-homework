@@ -35,7 +35,7 @@ public class InstructionParser
                     _instructionsManager.Add(indexOfFirstByte.Value, ParseRegisterOrMemoryTo_FromRegister(opcode, firstByte.Value));
                     break;
                 case Opcode.Mov_ImmediateToRegOrMem:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToRegisterOrMemory(opcode, firstByte.Value));
+                    _instructionsManager.Add(indexOfFirstByte.Value, ParseMovImmediateToRegisterOrMemory(opcode, firstByte.Value));
                     break;
                 case Opcode.Mov_ImmediateToReg:
                     _instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToRegister(firstByte.Value));
@@ -52,7 +52,7 @@ public class InstructionParser
                     _instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToAccumulator(opcode, firstByte.Value));
                     break;
                 case Opcode.Add_Sub_Cmp_ImmediateToRegOrMem:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToRegisterOrMemory(opcode, firstByte.Value));
+                    _instructionsManager.Add(indexOfFirstByte.Value, ParseArithmeticImmediateToRegisterOrMemory(opcode, firstByte.Value));
                     break;
                 case Opcode.JE_JZ:
                 case Opcode.JL_JNGE:
@@ -162,41 +162,10 @@ public class InstructionParser
         return $"mov {regDecoded}, {immediate}";
     }
 
-    private string ParseImmediateToRegisterOrMemory(Opcode opcode, byte firstByte)
+    private string ParseMovImmediateToRegisterOrMemory(Opcode opcode, byte firstByte)
     {
-        string instruction = "";
         byte w = (byte)(firstByte & 0b_0000_0001);
-        byte s = (byte)((firstByte >> 1) & 0b_0000_0001);
-
-        bool wide = Convert.ToBoolean(w);
-        bool signed = Convert.ToBoolean(s);
-
         byte secondByte = _walker.GetNextByte();
-
-        if (opcode == Opcode.Mov_ImmediateToRegOrMem &&
-            (secondByte >> 3) == 0b_000)
-        {
-            instruction = "mov";
-        }
-        else if (opcode == Opcode.Add_Sub_Cmp_ImmediateToRegOrMem)
-        {
-            byte code = (byte)((secondByte >> 3) & 0b_0000_0111);
-            ImmediateToRegisterOrMemorySubCode subcode = (ImmediateToRegisterOrMemorySubCode)code;
-
-            if (!signed && wide)
-            {
-                instruction = $"{subcode} word";
-            }
-            else if (!wide)
-            {
-                instruction = $"{subcode} byte";
-            }
-            else
-            {
-                instruction = $"{subcode}";
-            }
-        }
-
         byte mod = (byte)((secondByte >> 6) & 0b_0000_0011);
         byte r_m = (byte)(secondByte & 0b_0000_0111);
 
@@ -206,38 +175,71 @@ public class InstructionParser
             w: w);
 
         string immediate = "";
-        if (opcode == Opcode.Mov_ImmediateToRegOrMem)
+
+        bool wide = Convert.ToBoolean(w);
+        if (wide)
+        {
+            immediate = $"word {_byteParser.GetShort()}";
+        }
+        else 
+        {
+            immediate = $"byte {_byteParser.GetSbyte()}";
+        }
+        return $"mov {r_mDecoded}, {immediate}";
+    }
+
+    private string ParseArithmeticImmediateToRegisterOrMemory(Opcode opcode, byte firstByte)
+    {
+        byte w = (byte)(firstByte & 0b_0000_0001);
+        byte s = (byte)((firstByte >> 1) & 0b_0000_0001);
+
+        bool wide = Convert.ToBoolean(w);
+        bool signed = Convert.ToBoolean(s);
+
+        byte secondByte = _walker.GetNextByte();
+        byte code = (byte)((secondByte >> 3) & 0b_0000_0111);
+        ImmediateToRegisterOrMemorySubCode subcode = (ImmediateToRegisterOrMemorySubCode)code;
+
+        byte mod = (byte)((secondByte >> 6) & 0b_0000_0011);
+        byte r_m = (byte)(secondByte & 0b_0000_0111);
+
+        string r_mDecoded = _byteParser.DecodeR_M(
+            mod: mod,
+            r_m: r_m,
+            w: w);
+
+        string size = "";
+        string immediate = "";
+
+        if (signed)
+        {
+            immediate = $"{_byteParser.GetSbyte()}";
+            if (wide && mod != 0b11)
+            {
+                size = " word";
+            }
+        }
+        else
         {
             if (wide)
             {
-                immediate = $"word {_byteParser.GetShort()}";
+                size = " word";
+                immediate = $"{_byteParser.GetUShort()}";
             }
-
-            immediate = $"byte {_byteParser.GetSbyte()}";
-        }
-        else if (opcode == Opcode.Add_Sub_Cmp_ImmediateToRegOrMem)
-        {
-            // Console.WriteLine($"signed: {signed}, wide: {wide}");
-            if (signed)
+            else 
             {
-                // if (wide)
-                // {
-                //     immediate = $"{ByteParser.GetShortAsString(fileStream)}";
-                // }
-
-                immediate = $"{_byteParser.GetSbyte()}";
-            }
-            else
-            {
-                if (wide)
-                {
-                    immediate = $"{_byteParser.GetUShort()}";
-                }
-                
+                size = " byte";
                 immediate = $"{_byteParser.GetByte()}";
             }
         }
-        return $"{instruction} {r_mDecoded}, {immediate}";
+        
+        string compiledInstruction =  $"{subcode}{size} {r_mDecoded}, {immediate}";
+
+        // Console.WriteLine();
+        // Console.WriteLine($"first: {firstByte.GetBits()}, s: {s}, w: {w}, mod: {mod}, size: {size}");
+        // Console.WriteLine(compiledInstruction);
+
+        return compiledInstruction;
     }
 
     private string ParseRegisterOrMemoryTo_FromRegister(Opcode opcode, byte firstByte)
