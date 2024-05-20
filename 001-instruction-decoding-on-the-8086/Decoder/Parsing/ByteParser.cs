@@ -52,7 +52,7 @@ public class ByteParser
             0b100 => "si",
             0b101 => "di",
             0b110 => $"[{GetShort()}]",
-            0b111 => "bx",
+            0b111 => "[bx]",
             _ => throw new Exception("invalid reg value")
         };
     }
