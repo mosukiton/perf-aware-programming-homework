@@ -38,9 +38,11 @@ public class InstructionsManager
         List<string> instructions = new();
         List<double> orderedKeys = _instructions.Keys.Order().ToList();
 
+        instructions.Add("line number : byte index : instruction");
+        int lineNumber = 0;
         foreach (double key in orderedKeys)
         {
-            instructions.Add($"{key.ToString().PadLeft(3, '0')} : {_instructions[key]}");
+            instructions.Add($"{(++lineNumber).ToString().PadLeft(3, ' ')} : {key.ToString().PadLeft(5, ' ')} : {_instructions[key]}");
         }
 
         return instructions;

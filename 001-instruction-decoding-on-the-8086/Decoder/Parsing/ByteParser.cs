@@ -130,9 +130,22 @@ public class ByteParser
         throw new InvalidOperationException("invalid W value.");
     }
 
+    public static string GetMemorySizeFromMod(byte mod)
+    {
+        return mod switch 
+        {
+            0b00 => "",
+            0b01 => "byte",
+            0b10 => "word",
+            0b11 => "",
+            _ => throw new InvalidOperationException("unexepected w value")
+        };
+    }
+
     public string DecodeR_M(byte mod, byte r_m, byte w)
     {
-        return mod switch {
+        return mod switch
+        {
             0b00 => MostlyNoDisplacementMemoryMode(r_m),
             0b01 => ByteDisplacementMemoryMode(r_m),
             0b10 => UshortDisplacementMemoryMode(r_m),
