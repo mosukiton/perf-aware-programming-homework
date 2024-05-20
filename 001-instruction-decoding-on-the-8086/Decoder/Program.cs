@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Homework001.Parsing;
+using System;
 using System.IO;
+using System.Linq;
 
 namespace Homework001;
 
@@ -10,14 +11,27 @@ public class Program
     {
         if (args.Length == 0) throw new ArgumentOutOfRangeException();
 
-        Reader reader = new(args[0]);
-        List<string> result = reader.ReadFile();
-
-        if (args.Length == 2)
+        AssemblyWalker walker = new(args[0]);
+        InstructionsManager instructionsManager = new(walker);
+        ByteParser byteParser = new(walker);
+        InstructionParser reader = new(walker, byteParser, instructionsManager);
+        try
         {
-            File.WriteAllLines(args[1], result);
+            reader.ReadFile();
+
+            if (args.Length == 2)
+            {
+                File.WriteAllLines(args[1], instructionsManager.GetAllInstructions());
+            }
         }
-        result.ForEach(x => Console.WriteLine(x));
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            instructionsManager.DEBUG_GetAllInstructions().ForEach(x => Console.WriteLine(x));
+        }
     }
 }
 
