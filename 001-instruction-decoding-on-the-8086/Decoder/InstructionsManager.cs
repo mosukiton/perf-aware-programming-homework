@@ -27,9 +27,20 @@ public class InstructionsManager
 
         foreach (double key in orderedKeys)
         {
-            // DEBUG
-            // instructions.Add($"{key} : {_instructions[key]}");
             instructions.Add(_instructions[key]);
+        }
+
+        return instructions;
+    }
+
+    public List<string> DEBUG_GetAllInstructions()
+    {
+        List<string> instructions = new();
+        List<double> orderedKeys = _instructions.Keys.Order().ToList();
+
+        foreach (double key in orderedKeys)
+        {
+            instructions.Add($"{key.ToString().PadLeft(3, '0')} : {_instructions[key]}");
         }
 
         return instructions;

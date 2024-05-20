@@ -30,7 +30,7 @@ public class Program
         }
         finally
         {
-            instructionsManager.GetAllInstructions().ForEach(x => Console.WriteLine(x));
+            instructionsManager.DEBUG_GetAllInstructions().ForEach(x => Console.WriteLine(x));
         }
     }
 }
