@@ -1,7 +1,6 @@
 ﻿using Homework001.Parsing;
 using System;
 using System.IO;
-using System.Linq;
 
 namespace Homework001;
 
@@ -9,7 +8,10 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        if (args.Length == 0) throw new ArgumentOutOfRangeException();
+        if (args.Length == 0)
+        {
+            throw new ArgumentOutOfRangeException();
+        }
 
         AssemblyWalker walker = new(args[0]);
         InstructionsManager instructionsManager = new(walker);

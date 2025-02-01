@@ -1,26 +1,28 @@
 using System;
-using Homework001.Extensions;
 using Homework001.Instructions;
 
 namespace Homework001.Parsing;
 
 public class InstructionParser 
 {
-    private readonly AssemblyWalker _walker;
-    private readonly ByteParser _byteParser;
-    private readonly InstructionsManager _instructionsManager;
+    private readonly AssemblyWalker walker;
+    private readonly ByteParser byteParser;
+    private readonly InstructionsManager instructionsManager;
 
-    public InstructionParser(AssemblyWalker walker, ByteParser byteParser, InstructionsManager exporter)
+    public InstructionParser(
+        AssemblyWalker walker,
+        ByteParser byteParser,
+        InstructionsManager instructionsManager)
     {
-        _walker = walker;
-        _byteParser = byteParser;
-        _instructionsManager = exporter;
+        this.walker = walker;
+        this.byteParser = byteParser;
+        this.instructionsManager = instructionsManager;
     }
 
 
     public void ReadFile()
     {
-        while (_walker.TryGetNextInstruction(out byte? firstByte, out int? indexOfFirstByte) &&
+        while (walker.TryGetNextInstruction(out byte? firstByte, out int? indexOfFirstByte) &&
                 firstByte.HasValue && indexOfFirstByte.HasValue)
         {
             Opcode opcode = OpcodeParser.Parse(firstByte.Value);
@@ -32,27 +34,27 @@ public class InstructionParser
                 case Opcode.Add_RegOrMemWithRegToEither:
                 case Opcode.Sub_RegOrMemAndRegToEither:
                 case Opcode.Cmp_RegOrMemAndReg:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseRegisterOrMemoryTo_FromRegister(opcode, firstByte.Value));
+                    instructionsManager.Add(indexOfFirstByte.Value, ParseRegisterOrMemoryTo_FromRegister(opcode, firstByte.Value));
                     break;
                 case Opcode.Mov_ImmediateToRegOrMem:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseMovImmediateToRegisterOrMemory(opcode, firstByte.Value));
+                    instructionsManager.Add(indexOfFirstByte.Value, ParseMovImmediateToRegisterOrMemory(opcode, firstByte.Value));
                     break;
                 case Opcode.Mov_ImmediateToReg:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToRegister(firstByte.Value));
+                    instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToRegister(firstByte.Value));
                     break;
                 case Opcode.Mov_MemToAcc:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseMemoryToAccumulator(firstByte.Value));
+                    instructionsManager.Add(indexOfFirstByte.Value, ParseMemoryToAccumulator(firstByte.Value));
                     break;
                 case Opcode.Mov_AccToMem:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseAccumulatorToMemory(firstByte.Value));
+                    instructionsManager.Add(indexOfFirstByte.Value, ParseAccumulatorToMemory(firstByte.Value));
                     break;
                 case Opcode.Add_ImmediateToAcc:
                 case Opcode.Sub_ImmediateFromAcc:
                 case Opcode.Cmp_ImmediateWithAcc:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToAccumulator(opcode, firstByte.Value));
+                    instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToAccumulator(opcode, firstByte.Value));
                     break;
                 case Opcode.Add_Sub_Cmp_ImmediateToRegOrMem:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseArithmeticImmediateToRegisterOrMemory(opcode, firstByte.Value));
+                    instructionsManager.Add(indexOfFirstByte.Value, ParseArithmeticImmediateToRegisterOrMemory(opcode, firstByte.Value));
                     break;
                 case Opcode.JE_JZ:
                 case Opcode.JL_JNGE:
@@ -74,7 +76,7 @@ public class InstructionParser
                 case Opcode.LoopNZ_LoopNE:
                 case Opcode.Loop:
                 case Opcode.JCXZ:
-                    _instructionsManager.Add(indexOfFirstByte.Value, ParseConditionalJump(opcode, indexOfFirstByte.Value));
+                    instructionsManager.Add(indexOfFirstByte.Value, ParseConditionalJump(opcode, indexOfFirstByte.Value));
                     break;
             }
         }
@@ -93,11 +95,11 @@ public class InstructionParser
         short immediate = 0;
         if (wide)
         {
-            immediate = _byteParser.GetShort();
+            immediate = byteParser.GetShort();
             return $"{instruction} ax, {immediate}";
         }
 
-        immediate = _byteParser.GetSbyte();
+        immediate = byteParser.GetSbyte();
         return $"{instruction} al, {immediate}";
 
     }
@@ -109,8 +111,8 @@ public class InstructionParser
             .Split('_', StringSplitOptions.RemoveEmptyEntries)[0]
             .ToLowerInvariant();
 
-        sbyte jumpVector = _byteParser.GetSbyte();
-        string label = _instructionsManager.LabelliseConditionalJumpVector(jumpVector);
+        sbyte jumpVector = byteParser.GetSbyte();
+        string label = instructionsManager.LabelliseConditionalJumpVector(jumpVector);
         string instruction =  $"{conditionalJumpInstruction} {label} ; {jumpVector}";
         return instruction;
     }
@@ -121,10 +123,10 @@ public class InstructionParser
         bool wide = Convert.ToBoolean(w);
         if (wide)
         {
-            return $"mov [{_byteParser.GetShort()}], ax";
+            return $"mov [{byteParser.GetShort()}], ax";
         }
 
-        return $"mov [{_byteParser.GetSbyte()}], ax";
+        return $"mov [{byteParser.GetSbyte()}], ax";
     }
 
     private string ParseMemoryToAccumulator(byte firstByte)
@@ -133,12 +135,12 @@ public class InstructionParser
         bool wide = Convert.ToBoolean(w);
         if (wide)
         {
-            short memoryAddress = _byteParser.GetShort();
+            short memoryAddress = byteParser.GetShort();
             return $"mov ax, [{memoryAddress}]";
         }
         else
         {
-            sbyte memoryAddress = _byteParser.GetSbyte();
+            sbyte memoryAddress = byteParser.GetSbyte();
             return $"mov ax, [{memoryAddress}]";
         }
     }
@@ -152,11 +154,11 @@ public class InstructionParser
         short immediate = 0;
         if (wide)
         {
-            immediate = _byteParser.GetShort();
+            immediate = byteParser.GetShort();
         }
         else
         {
-            immediate = _byteParser.GetSbyte();
+            immediate = byteParser.GetSbyte();
         }
 
         return $"mov {regDecoded}, {immediate}";
@@ -165,11 +167,11 @@ public class InstructionParser
     private string ParseMovImmediateToRegisterOrMemory(Opcode opcode, byte firstByte)
     {
         byte w = (byte)(firstByte & 0b_0000_0001);
-        byte secondByte = _walker.GetNextByte();
+        byte secondByte = walker.GetNextByte();
         byte mod = (byte)((secondByte >> 6) & 0b_0000_0011);
         byte r_m = (byte)(secondByte & 0b_0000_0111);
 
-        string r_mDecoded = _byteParser.DecodeR_M(
+        string r_mDecoded = byteParser.DecodeR_M(
             mod: mod,
             r_m: r_m,
             w: w);
@@ -179,11 +181,11 @@ public class InstructionParser
         bool wide = Convert.ToBoolean(w);
         if (wide)
         {
-            immediate = $"word {_byteParser.GetShort()}";
+            immediate = $"word {byteParser.GetShort()}";
         }
         else 
         {
-            immediate = $"byte {_byteParser.GetSbyte()}";
+            immediate = $"byte {byteParser.GetSbyte()}";
         }
         return $"mov {r_mDecoded}, {immediate}";
     }
@@ -196,14 +198,14 @@ public class InstructionParser
         bool wide = Convert.ToBoolean(w);
         bool signed = Convert.ToBoolean(s);
 
-        byte secondByte = _walker.GetNextByte();
+        byte secondByte = walker.GetNextByte();
         byte code = (byte)((secondByte >> 3) & 0b_0000_0111);
         ImmediateToRegisterOrMemorySubCode subcode = (ImmediateToRegisterOrMemorySubCode)code;
 
         byte mod = (byte)((secondByte >> 6) & 0b_0000_0011);
         byte r_m = (byte)(secondByte & 0b_0000_0111);
 
-        string r_mDecoded = _byteParser.DecodeR_M(
+        string r_mDecoded = byteParser.DecodeR_M(
             mod: mod,
             r_m: r_m,
             w: w);
@@ -213,7 +215,7 @@ public class InstructionParser
 
         if (signed)
         {
-            immediate = $"{_byteParser.GetSbyte()}";
+            immediate = $"{byteParser.GetSbyte()}";
             if (wide && mod != 0b11)
             {
                 size = " word";
@@ -224,12 +226,12 @@ public class InstructionParser
             if (wide)
             {
                 size = " word";
-                immediate = $"{_byteParser.GetUShort()}";
+                immediate = $"{byteParser.GetUShort()}";
             }
             else 
             {
                 size = " byte";
-                immediate = $"{_byteParser.GetByte()}";
+                immediate = $"{byteParser.GetByte()}";
             }
         }
         
@@ -254,13 +256,13 @@ public class InstructionParser
 
         byte w = (byte)(firstByte & 0b_0000_0001);
 
-        byte nextByte = _walker.GetNextByte();
+        byte nextByte = walker.GetNextByte();
 
         byte mod = (byte)((nextByte >> 6) & 0b_0000_0011);
         byte reg = (byte)((nextByte >> 3) & 0b_0000_0111);
         byte r_m = (byte)(nextByte & 0b_0000_0111);
         string regDecoded = ByteParser.DecodeRegister(reg, w);
-        string r_mDecoded = _byteParser.DecodeR_M(
+        string r_mDecoded = byteParser.DecodeR_M(
             mod: mod,
             r_m: r_m,
             w: w);

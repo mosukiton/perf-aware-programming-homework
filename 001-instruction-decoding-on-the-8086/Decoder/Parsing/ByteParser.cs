@@ -4,11 +4,11 @@ namespace Homework001.Parsing;
 
 public class ByteParser
 {
-    private readonly AssemblyWalker _walker;
+    private readonly AssemblyWalker walker;
 
     public ByteParser(AssemblyWalker walker)
     {
-        _walker = walker;
+        this.walker = walker;
     }
 
     public string UshortDisplacementMemoryMode(byte r_m)
@@ -59,22 +59,22 @@ public class ByteParser
 
     public sbyte GetSbyte()
     {
-        byte nextByte = _walker.GetNextByte();
+        byte nextByte = walker.GetNextByte();
         sbyte value = unchecked((sbyte)nextByte);
         return value;
     }
     
     public byte GetByte()
     {
-        return _walker.GetNextByte();
+        return walker.GetNextByte();
     }
     
     public short GetShort()
     {
         short orderedBits;
 
-        byte lowerBits = _walker.GetNextByte();
-        byte upperBits = _walker.GetNextByte();
+        byte lowerBits = walker.GetNextByte();
+        byte upperBits = walker.GetNextByte();
 
         orderedBits = (short)(upperBits << 8);
         orderedBits = (short)((ushort)orderedBits | (lowerBits));
@@ -86,8 +86,8 @@ public class ByteParser
     {
         ushort orderedBits;
         
-        byte lowerBits = _walker.GetNextByte();
-        byte upperBits = _walker.GetNextByte();
+        byte lowerBits = walker.GetNextByte();
+        byte upperBits = walker.GetNextByte();
 
         orderedBits = (ushort)(upperBits << 8);
         orderedBits = (ushort)(orderedBits | (lowerBits));
