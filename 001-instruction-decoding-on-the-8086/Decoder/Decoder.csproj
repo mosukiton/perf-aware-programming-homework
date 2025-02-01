@@ -4,7 +4,7 @@
         <RootNamespace>Homework.001.Decoder</RootNamespace>
         <AssemblyName>Homework.001.Decoder</AssemblyName>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
         <Platforms>x64</Platforms>
         <ImplicitUsings>disable</ImplicitUsings>
