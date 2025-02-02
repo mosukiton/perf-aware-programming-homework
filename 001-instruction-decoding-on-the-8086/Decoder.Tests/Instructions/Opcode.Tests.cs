@@ -96,4 +96,15 @@ public class OpcodeTests
 
         await Assert.That(new Opcode(inputBits).Code).IsEqualTo(expected);
     }
+
+    [Test]
+    [Arguments(0b_1111_1111)]
+    public async Task When_GivenIncorrectBits_Then_ThrowNotSupportedException(byte inputBits)
+    {
+        await Assert.That(() =>
+        {
+            Opcode objectUnderTest = new(inputBits);
+
+        }).Throws<NotSupportedException>();
+    }
 }
