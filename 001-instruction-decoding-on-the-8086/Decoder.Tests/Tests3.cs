@@ -1,10 +1,10 @@
 ﻿namespace Decoder.Tests;
 
-[ClassDataSource<DataClass>]
-[ClassConstructor<DependencyInjectionClassConstructor>]
+// [ClassDataSource<DataClass>]
+// [ClassConstructor<DependencyInjectionClassConstructor>]
 public class AndEvenMoreTests(DataClass dataClass)
 {
-    [Test]
+    // [Test]
     public void HaveFun()
     {
         Console.WriteLine(dataClass);
