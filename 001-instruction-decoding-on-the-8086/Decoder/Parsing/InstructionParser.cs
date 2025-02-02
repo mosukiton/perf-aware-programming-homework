@@ -1,5 +1,5 @@
-using System;
 using Homework001.Instructions;
+using System;
 
 namespace Homework001.Parsing;
 
@@ -25,64 +25,64 @@ public class InstructionParser
         while (walker.TryGetNextInstruction(out byte? firstByte, out int? indexOfFirstByte) &&
                 firstByte.HasValue && indexOfFirstByte.HasValue)
         {
-            Opcode opcode = OpcodeParser.Parse(firstByte.Value);
+            OperationCode opcode = OpcodeParser.Parse(firstByte.Value);
             // Console.WriteLine($"value: {firstByte.Value.GetBits()}, index: {indexOfFirstByte.Value.ToString().PadLeft(3,'0')}, opcode: {opcode}");
 
             switch (opcode)
             {
-                case Opcode.Mov_RegOrMemTo_FromReg:
-                case Opcode.Add_RegOrMemWithRegToEither:
-                case Opcode.Sub_RegOrMemAndRegToEither:
-                case Opcode.Cmp_RegOrMemAndReg:
+                case OperationCode.Mov_RegOrMemTo_FromReg:
+                case OperationCode.Add_RegOrMemWithRegToEither:
+                case OperationCode.Sub_RegOrMemAndRegToEither:
+                case OperationCode.Cmp_RegOrMemAndReg:
                     instructionsManager.Add(indexOfFirstByte.Value, ParseRegisterOrMemoryTo_FromRegister(opcode, firstByte.Value));
                     break;
-                case Opcode.Mov_ImmediateToRegOrMem:
+                case OperationCode.Mov_ImmediateToRegOrMem:
                     instructionsManager.Add(indexOfFirstByte.Value, ParseMovImmediateToRegisterOrMemory(opcode, firstByte.Value));
                     break;
-                case Opcode.Mov_ImmediateToReg:
+                case OperationCode.Mov_ImmediateToReg:
                     instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToRegister(firstByte.Value));
                     break;
-                case Opcode.Mov_MemToAcc:
+                case OperationCode.Mov_MemToAcc:
                     instructionsManager.Add(indexOfFirstByte.Value, ParseMemoryToAccumulator(firstByte.Value));
                     break;
-                case Opcode.Mov_AccToMem:
+                case OperationCode.Mov_AccToMem:
                     instructionsManager.Add(indexOfFirstByte.Value, ParseAccumulatorToMemory(firstByte.Value));
                     break;
-                case Opcode.Add_ImmediateToAcc:
-                case Opcode.Sub_ImmediateFromAcc:
-                case Opcode.Cmp_ImmediateWithAcc:
+                case OperationCode.Add_ImmediateToAcc:
+                case OperationCode.Sub_ImmediateFromAcc:
+                case OperationCode.Cmp_ImmediateWithAcc:
                     instructionsManager.Add(indexOfFirstByte.Value, ParseImmediateToAccumulator(opcode, firstByte.Value));
                     break;
-                case Opcode.Add_Sub_Cmp_ImmediateToRegOrMem:
+                case OperationCode.Add_Sub_Cmp_ImmediateToRegOrMem:
                     instructionsManager.Add(indexOfFirstByte.Value, ParseArithmeticImmediateToRegisterOrMemory(opcode, firstByte.Value));
                     break;
-                case Opcode.JE_JZ:
-                case Opcode.JL_JNGE:
-                case Opcode.JLE_JNG:
-                case Opcode.JB_JNAE:
-                case Opcode.JBE_JNA:
-                case Opcode.JP_JPE:
-                case Opcode.JO:
-                case Opcode.JS:
-                case Opcode.JNS:
-                case Opcode.JNE_JNZ:
-                case Opcode.JNL_JGE:
-                case Opcode.JNLE_JG:
-                case Opcode.JNB_JAE:
-                case Opcode.JNBE_JA:
-                case Opcode.JNP_JPO:
-                case Opcode.JNO:
-                case Opcode.LoopZ_LoopE:
-                case Opcode.LoopNZ_LoopNE:
-                case Opcode.Loop:
-                case Opcode.JCXZ:
+                case OperationCode.JE_JZ:
+                case OperationCode.JL_JNGE:
+                case OperationCode.JLE_JNG:
+                case OperationCode.JB_JNAE:
+                case OperationCode.JBE_JNA:
+                case OperationCode.JP_JPE:
+                case OperationCode.JO:
+                case OperationCode.JS:
+                case OperationCode.JNS:
+                case OperationCode.JNE_JNZ:
+                case OperationCode.JNL_JGE:
+                case OperationCode.JNLE_JG:
+                case OperationCode.JNB_JAE:
+                case OperationCode.JNBE_JA:
+                case OperationCode.JNP_JPO:
+                case OperationCode.JNO:
+                case OperationCode.LoopZ_LoopE:
+                case OperationCode.LoopNZ_LoopNE:
+                case OperationCode.Loop:
+                case OperationCode.JCXZ:
                     instructionsManager.Add(indexOfFirstByte.Value, ParseConditionalJump(opcode, indexOfFirstByte.Value));
                     break;
             }
         }
     }
 
-    private string ParseImmediateToAccumulator(Opcode opcode, byte firstByte)
+    private string ParseImmediateToAccumulator(OperationCode opcode, byte firstByte)
     {
         string instruction = opcode
             .ToString()
@@ -104,7 +104,7 @@ public class InstructionParser
 
     }
 
-    private string ParseConditionalJump(Opcode opcode, int instructioIndex)
+    private string ParseConditionalJump(OperationCode opcode, int instructioIndex)
     {
         string conditionalJumpInstruction = opcode
             .ToString()
@@ -164,7 +164,7 @@ public class InstructionParser
         return $"mov {regDecoded}, {immediate}";
     }
 
-    private string ParseMovImmediateToRegisterOrMemory(Opcode opcode, byte firstByte)
+    private string ParseMovImmediateToRegisterOrMemory(OperationCode opcode, byte firstByte)
     {
         byte w = (byte)(firstByte & 0b_0000_0001);
         byte secondByte = walker.GetNextByte();
@@ -190,7 +190,7 @@ public class InstructionParser
         return $"mov {r_mDecoded}, {immediate}";
     }
 
-    private string ParseArithmeticImmediateToRegisterOrMemory(Opcode opcode, byte firstByte)
+    private string ParseArithmeticImmediateToRegisterOrMemory(OperationCode opcode, byte firstByte)
     {
         byte w = (byte)(firstByte & 0b_0000_0001);
         byte s = (byte)((firstByte >> 1) & 0b_0000_0001);
@@ -244,7 +244,7 @@ public class InstructionParser
         return compiledInstruction;
     }
 
-    private string ParseRegisterOrMemoryTo_FromRegister(Opcode opcode, byte firstByte)
+    private string ParseRegisterOrMemoryTo_FromRegister(OperationCode opcode, byte firstByte)
     {
         string instruction = opcode
             .ToString()
