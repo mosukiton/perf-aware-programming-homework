@@ -11,4 +11,8 @@
     <PackageReference Include="TUnit" Version="0.9.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Decoder\Decoder.csproj" />
+  </ItemGroup>
+
 </Project>
