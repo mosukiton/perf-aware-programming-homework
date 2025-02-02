@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decoder", "Decoder\Decoder.csproj", "{95FE4EE9-523B-425F-90AB-E39769102006}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decoder.Tests", "Decoder.Tests\Decoder.Tests.csproj", "{E127BC97-59A6-4890-AE37-2F5AADBD10ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -18,5 +20,9 @@ Global
 		{95FE4EE9-523B-425F-90AB-E39769102006}.Debug|x64.Build.0 = Debug|x64
 		{95FE4EE9-523B-425F-90AB-E39769102006}.Release|x64.ActiveCfg = Release|x64
 		{95FE4EE9-523B-425F-90AB-E39769102006}.Release|x64.Build.0 = Release|x64
+		{E127BC97-59A6-4890-AE37-2F5AADBD10ED}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E127BC97-59A6-4890-AE37-2F5AADBD10ED}.Debug|x64.Build.0 = Debug|Any CPU
+		{E127BC97-59A6-4890-AE37-2F5AADBD10ED}.Release|x64.ActiveCfg = Release|Any CPU
+		{E127BC97-59A6-4890-AE37-2F5AADBD10ED}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
