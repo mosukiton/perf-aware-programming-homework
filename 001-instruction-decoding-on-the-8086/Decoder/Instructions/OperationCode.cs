@@ -36,8 +36,8 @@ public enum OperationCode : byte
     JLE_JNG = 0b_0111_1110,
     JNLE_JG = 0b_0111_1111,
 
-    Loop = 0b_1110_0010,           // 1 1 1 0 _ 0 0 1 0
-    LoopZ_LoopE = 0b_1110_0001,    // 1 1 1 0 _ 0 0 0 1
-    LoopNZ_LoopNE = 0b_1110_0000,  // 1 1 1 0 _ 0 0 0 0
-    JCXZ = 0b_1110_0011,           // 1 1 1 0 _ 0 0 1 1
+    Loop            = 0b_1110_0010,           // 1 1 1 0 _ 0 0 1 0
+    LoopZ_LoopE     = 0b_1110_0001,    // 1 1 1 0 _ 0 0 0 1
+    LoopNZ_LoopNE   = 0b_1110_0000,  // 1 1 1 0 _ 0 0 0 0
+    JCXZ            = 0b_1110_0011,           // 1 1 1 0 _ 0 0 1 1
 }
