@@ -1,8 +1,7 @@
-using Homework001.Instructions;
 using System.Runtime.InteropServices;
 using System;
 
-namespace Homework001.Parsing;
+namespace Homework001.Instructions;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Opcode
@@ -23,9 +22,16 @@ public struct Opcode
 
     private OperationCode ParseCode()
     {
-        if (Top4 == 0b_1000 && Skip2Bottom2 == 0b_011)
+        if (Top4 == 0b_1000)
         {
-            return OperationCode.Mov_RegOrMemTo_FromReg;
+            if (Skip2Bottom2 == 0b_10)
+            {
+                return OperationCode.Mov_RegOrMemTo_FromReg;
+            }
+            else if (Skip2Bottom2 == 0)
+            {
+                return OperationCode.Add_Sub_Cmp_ImmediateToRegOrMem;
+            }
         }
 
         if (Top4 == 0b1100 && Skip1Bottom3 == 0b011)
@@ -94,12 +100,12 @@ public struct Opcode
 
         if (Top4 == 0b0111)
         {
-            return CalculateJump();
+            return (OperationCode)Bits;
         }
 
         if (Top4 == 0b1110)
         {
-            return CalculateLoop();
+            return (OperationCode)Bits;
         }
 
         throw new NotSupportedException();
