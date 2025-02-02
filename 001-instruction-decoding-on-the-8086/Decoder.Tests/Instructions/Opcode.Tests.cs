@@ -25,11 +25,6 @@ public class OpcodeTests
 
     [Arguments(0b_1000_0000, OperationCode.Add_Sub_Cmp_ImmediateToRegOrMem)]
 
-    [Arguments(0b_1000_0000, OperationCode.Add_Sub_Cmp_ImmediateToRegOrMem)]
-    [Arguments(0b_1000_0000, OperationCode.Add_Sub_Cmp_ImmediateToRegOrMem)]
-    [Arguments(0b_1000_0000, OperationCode.Add_Sub_Cmp_ImmediateToRegOrMem)]
-    [Arguments(0b_1000_0000, OperationCode.Add_Sub_Cmp_ImmediateToRegOrMem)]
-
     [Arguments(0b_0111_0000, OperationCode.JO)]
     [Arguments(0b_0111_0001, OperationCode.JNO)]
     [Arguments(0b_0111_0010, OperationCode.JB_JNAE)]
